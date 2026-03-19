@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
 
@@ -11,10 +11,16 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "BPI Innovate - AI-Powered Product Prototyping",
   description: "Autonomous AI-Powered Product Prototyping and Market Insight Platform",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-  themeColor: "#7A1216",
   manifest: "/manifest.json",
-    generator: 'v0.app'
+  generator: 'v0.app'
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#7A1216",
 }
 
 export default function RootLayout({
