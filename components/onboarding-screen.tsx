@@ -8,40 +8,41 @@ interface OnboardingScreenProps {
   onComplete: () => void
   onSkip: () => void
 }
+const img = (file: string) => `/onboarding/${file}`
 
 const onboardingData = [
   {
     id: 1,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_1.svg",
+    image: img("onboarding_1.png"),
     description:
       "Thryve Rapid Prototyping — Deep Market Research, modification on demand, and launches market-ready innovations for a better tomorrow.",
   },
   {
     id: 2,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_2.svg",
+    image: img("onboarding_2.svg"),
     description:
       "Discover High-Demand Opportunities. Leverage advanced AI to forecast industry trends. With AI-powered market prototyping we are ready to lead the future.",
   },
   {
     id: 3,
     images: [
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_3.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_4.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_5.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_6.svg",
+      img("onboarding_3.svg"),
+      img("onboarding_4.svg"),
+      img("onboarding_5.svg"),
+      img("onboarding_6.svg"),
     ],
     description:
       "Yve, our agentic AI, is more than a chatbot — she's your design partner, strategist, and late-night idea machine, available 24/7.",
   },
   {
     id: 4,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_7.svg",
+    image: img("onboarding_7.png"),
     description:
       "Bring your team into the process. Enable cross-functional teams to collaborate, review, and iterate in real time.",
   },
   {
     id: 5,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_8.svg",
+    image: img("onboarding_8.png"),
     description: "Thryve enables faster product cycles, smarter decisions, and transformative impact",
     isLastSlide: true,
   },
