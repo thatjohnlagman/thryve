@@ -165,7 +165,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               </Label>
               <Input
                 id="firstName"
-                placeholder="Miggy"
+                placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={isLoading}
@@ -178,7 +178,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               </Label>
               <Input
                 id="lastName"
-                placeholder="Mango"
+                placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={isLoading}
@@ -197,7 +197,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               <Input
                 id="email"
                 type="email"
-                placeholder="miggymango@iskolarngbayan.pup.edu.ph"
+                placeholder="name@iskolarngbayan.pup.edu.ph"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}

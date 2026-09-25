@@ -122,7 +122,7 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
                     id="email"
                     type="email"
                     inputMode="email"
-                    placeholder="miggymango@iskolarngbayan.pup.edu.ph"
+                    placeholder="name@iskolarngbayan.pup.edu.ph"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
