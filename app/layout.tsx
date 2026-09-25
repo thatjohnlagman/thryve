@@ -9,12 +9,12 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "BPI Innovate - AI-Powered Product Prototyping",
+  title: "Thryve",
   description: "Autonomous AI-Powered Product Prototyping and Market Insight Platform",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   themeColor: "#7A1216",
   manifest: "/manifest.json",
-    generator: 'v0.app'
+  generator: 'v0.app'
 }
 
 export default function RootLayout({

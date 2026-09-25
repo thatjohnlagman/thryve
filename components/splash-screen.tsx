@@ -61,7 +61,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         }}
       >
         <img
-          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/yve_splash_smile_1 (1).svg"
+          src="/assets/yve_splash_teeth_smile_1.svg"
           alt="Mascot"
           className="w-full h-full object-contain"
         />
@@ -82,19 +82,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         }}
       >
         <img
-          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/yve_splash_teeth_smile_1 (1).svg"
+          src="/assets/yve_splash_smile_1.svg"
           alt="Mascot Center"
           className="w-full h-full object-contain"
         />
       </div>
 
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out ${
-          animationPhase >= 3 && animationPhase < 5 ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out ${animationPhase >= 3 && animationPhase < 5 ? "opacity-100" : "opacity-0"
+          }`}
       >
         <img
-          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_splash.svg"
+          src="/assets/Thryve_1st.svg"
           alt="Thryve Logo"
           style={{ width: "325px", height: "133px" }}
           className="object-contain"
@@ -102,18 +101,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       </div>
 
       <div
-              className="absolute bg-red-600 transition-all duration-2000 ease-out"
-              style={{
-                left: "-50vw",
-                right: "-50vw",
-                width: "200vw",
-                height: animationPhase >= 5 ? "200vh" : "60vh",
-                borderRadius: "50%",
-                bottom: "-50vh",
-                display: animationPhase >= 4 ? "block" : "none",
-                transition: animationPhase >= 5 ? "height 2s cubic-bezier(0.4, 0, 0.2, 1)" : "all 0.5s ease-out",
-              }}
-            />
-      </div>
+        className="absolute bg-red-600 transition-all duration-2000 ease-out"
+        style={{
+          left: "-50vw",
+          right: "-50vw",
+          width: "200vw",
+          height: animationPhase >= 5 ? "200vh" : "60vh",
+          borderRadius: "50%",
+          bottom: "-50vh",
+          display: animationPhase >= 4 ? "block" : "none",
+          transition: animationPhase >= 5 ? "height 2s cubic-bezier(0.4, 0, 0.2, 1)" : "all 0.5s ease-out",
+        }}
+      />
+    </div>
   )
 }

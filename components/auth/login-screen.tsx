@@ -61,7 +61,7 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
         {/* Parent is relative to allow next/image fill usage [^1][^2] */}
         <div className="relative h-[48vh] sm:h-[52vh]">
           <Image
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/Lucky.png"
+            src="assets/Lucky.svg"
             alt="Background"
             fill
             priority
@@ -77,7 +77,7 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-[48vh] items-center justify-center sm:h-[52vh] -translate-y-[10%]">
         <div className="relative h-15 w-43 sm:h-18 sm:w-46">
           <Image
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_splash.svg"
+            src="assets/Thryve.png"
             alt="Thryve"
             fill
             sizes="(max-width: 840px) 312px, 328px"
@@ -122,7 +122,7 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
                     id="email"
                     type="email"
                     inputMode="email"
-                    placeholder="nicole.shengli@bpi.com.ph"
+                    placeholder="miggymango@iskolarngbayan.pup.edu.ph"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
@@ -218,12 +218,12 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0">
         <div className="relative">
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/Ellipse%20202.svg"
+            src="assets/Ellipse_202.svg"
             alt="Decorative curved footer shape"
             className="absolute bottom-0 left-0 w-[120%] max-w-none"
           />
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/smiling_mascot.svg"
+            src="assets/mascot_smile_close_center.svg"
             alt="Winking mascot"
             className="absolute bottom-0 right-0 z-10 h-[210px] w-auto sm:h-[230px]"
           />

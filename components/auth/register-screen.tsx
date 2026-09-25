@@ -87,12 +87,12 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token
         })
-        
+
         if (sessionError) {
           console.error("Error setting session:", sessionError)
           throw new Error("Failed to establish session")
         }
-        
+
         console.log("Session established successfully")
       }
 
@@ -116,7 +116,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
     <main className="relative min-h-dvh w-full overflow-hidden">
       {/* Background image (no stretch) */}
       <img
-        src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/Luckysignup.png"
+        src="assets/lucky.svg"
         alt="Background of people collaborating"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
@@ -131,7 +131,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
         {/* Header */}
         <header className="flex flex-col items-center justify-center pt-6 sm:pt-8">
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryvewithus.png"
+            src="assets/thryvewithus.svg"
             alt="thryve with Us"
             className="mx-auto h-auto w-[clamp(170px,50vw,240px)]"
           />
@@ -165,7 +165,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               </Label>
               <Input
                 id="firstName"
-                placeholder="Nicole"
+                placeholder="Miggy"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={isLoading}
@@ -178,7 +178,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               </Label>
               <Input
                 id="lastName"
-                placeholder="Shengli"
+                placeholder="Mango"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={isLoading}
@@ -197,7 +197,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
               <Input
                 id="email"
                 type="email"
-                placeholder="nicole.shengli@bpi.com.ph"
+                placeholder="miggymango@iskolarngbayan.pup.edu.ph"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -355,18 +355,18 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
         </p>
       </div>
 
-      {/* Footer illustration — ellipse L➜R and mascot hugs right; both scale with viewport */}
+      {/* Footer illustration — ellipse L➜R and mascot hugs right; matches login-screen */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0">
         <div className="relative">
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/Ellipse%20202.svg"
+            src="assets/Ellipse_202.svg"
             alt="Decorative curved footer shape"
-            className="absolute bottom-0 left-0 w-[130%] max-w-none sm:w-[120%]"
+            className="absolute bottom-0 left-0 w-[120%] max-w-none"
           />
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/winking_mascot.svg"
+            src="assets/happier.svg"
             alt="Winking mascot"
-            className="absolute bottom-0 right-0 z-10 h-[clamp(160px,34vw,240px)] w-auto"
+            className="absolute bottom-0 right-0 z-10 h-[210px] w-auto sm:h-[230px]"
           />
         </div>
       </div>
