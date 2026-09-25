@@ -12,38 +12,38 @@ interface OnboardingScreenProps {
 const onboardingData = [
   {
     id: 1,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_1.svg",
+    image: "assets/onboarding_1.svg",
     description:
       "Thryve Rapid Prototyping — Deep Market Research, modification on demand, and launches market-ready innovations for a better tomorrow.",
   },
   {
     id: 2,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_2.svg",
+    image: "assets/onboarding_2.svg",
     description:
       "Discover High-Demand Opportunities. Leverage advanced AI to forecast industry trends. With AI-powered market prototyping we are ready to lead the future.",
   },
   {
     id: 3,
     images: [
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_3.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_4.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_5.svg",
-      "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_6.svg",
+      "assets/onboarding_3.1.svg",
+      "assets/onboarding_3.2.svg",
+      "assets/onboarding_3.3.svg",
+      "assets/onboarding_3.4.svg",
     ],
     description:
       "Yve, our agentic AI, is more than a chatbot — she's your design partner, strategist, and late-night idea machine, available 24/7.",
   },
   {
     id: 4,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_7.svg",
+    image: "assets/onboarding_4.svg",
     description:
       "Bring your team into the process. Enable cross-functional teams to collaborate, review, and iterate in real time.",
   },
   {
     id: 5,
-    image: "https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/onboarding_8.svg",
+    image: "assets/onboarding_5.svg",
     description: "Thryve enables faster product cycles, smarter decisions, and transformative impact",
-    isLastSlide: true,
+    //isLastSlide: true,
   },
 ]
 
@@ -277,48 +277,44 @@ export function OnboardingScreen({ onComplete, onSkip }: OnboardingScreenProps) 
         <div className="flex-1 relative overflow-hidden">
           {/* Current Page Image */}
           <div
-            className={`absolute inset-0 transition-transform duration-700 ease-out ${
-              slideDirection === "left"
-                ? "animate-slide-out-left"
-                : slideDirection === "right"
-                  ? "animate-slide-out-right"
-                  : ""
-            }`}
+            className={`absolute inset-0 transition-transform duration-700 ease-out ${slideDirection === "left"
+              ? "animate-slide-out-left"
+              : slideDirection === "right"
+                ? "animate-slide-out-right"
+                : ""
+              }`}
           >
             <img
               src={getCurrentImage() || "/placeholder.svg"}
               alt={`Onboarding ${currentData.id}`}
-              className={`w-full h-full ${
-                currentData.id === 1 || currentData.id === 5
-                  ? "object-contain"
-                  : currentData.id === 3
-                    ? "object-contain scale-x-100 scale-y-90"
-                    : "object-contain"
-              }`}
+              className={`w-full h-full ${currentData.id === 1 || currentData.id === 5
+                ? "object-contain"
+                : currentData.id === 3
+                  ? "object-contain scale-x-100 scale-y-90"
+                  : "object-contain"
+                }`}
             />
           </div>
 
           {/* Next Page Image - Added incoming page during transition */}
           {nextData && (
             <div
-              className={`absolute inset-0 transition-transform duration-700 ease-out ${
-                slideDirection === "left"
-                  ? "animate-slide-in-right"
-                  : slideDirection === "right"
-                    ? "animate-slide-in-left"
-                    : ""
-              }`}
+              className={`absolute inset-0 transition-transform duration-700 ease-out ${slideDirection === "left"
+                ? "animate-slide-in-right"
+                : slideDirection === "right"
+                  ? "animate-slide-in-left"
+                  : ""
+                }`}
             >
               <img
                 src={getNextImage() || "/placeholder.svg"}
                 alt={`Onboarding ${nextData.id}`}
-                className={`w-full h-full ${
-                  nextData.id === 1 || nextData.id === 5
-                    ? "object-contain"
-                    : nextData.id === 3
-                      ? "object-contain scale-x-100 scale-y-90"
-                      : "object-contain"
-                }`}
+                className={`w-full h-full ${nextData.id === 1 || nextData.id === 5
+                  ? "object-contain"
+                  : nextData.id === 3
+                    ? "object-contain scale-x-100 scale-y-90"
+                    : "object-contain"
+                  }`}
               />
             </div>
           )}
@@ -328,13 +324,12 @@ export function OnboardingScreen({ onComplete, onSkip }: OnboardingScreenProps) 
         <div className="bg-background px-6 py-4 space-y-4 overflow-hidden relative">
           {/* Current Page Content */}
           <div
-            className={`text-center transition-all duration-700 ease-out ${
-              slideDirection === "left"
-                ? "animate-slide-out-left"
-                : slideDirection === "right"
-                  ? "animate-slide-out-right"
-                  : ""
-            }`}
+            className={`text-center transition-all duration-700 ease-out ${slideDirection === "left"
+              ? "animate-slide-out-left"
+              : slideDirection === "right"
+                ? "animate-slide-out-right"
+                : ""
+              }`}
           >
             <p className="text-muted-foreground text-base leading-relaxed max-w-sm mx-auto font-sans font-semibold">
               {currentData.description}
@@ -344,13 +339,12 @@ export function OnboardingScreen({ onComplete, onSkip }: OnboardingScreenProps) 
           {/* Next Page Content - fixed positioning to prevent bottom-to-center movement */}
           {nextData && (
             <div
-              className={`text-center transition-all duration-700 ease-out absolute top-0 left-0 right-0 py-4 px-6 ${
-                slideDirection === "left"
-                  ? "animate-slide-in-right"
-                  : slideDirection === "right"
-                    ? "animate-slide-in-left"
-                    : ""
-              }`}
+              className={`text-center transition-all duration-700 ease-out absolute top-0 left-0 right-0 py-4 px-6 ${slideDirection === "left"
+                ? "animate-slide-in-right"
+                : slideDirection === "right"
+                  ? "animate-slide-in-left"
+                  : ""
+                }`}
             >
               <p className="text-muted-foreground text-base leading-relaxed max-w-sm mx-auto font-sans font-semibold">
                 {nextData.description}
@@ -375,11 +369,10 @@ export function OnboardingScreen({ onComplete, onSkip }: OnboardingScreenProps) 
                 <button
                   onClick={handlePrevious}
                   disabled={currentScreen === 0}
-                  className={`p-3 rounded-full transition-all duration-200 shadow-md ${
-                    currentScreen === 0
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#CF0306] text-white hover:bg-[#b8020a] active:scale-95 hover:shadow-lg"
-                  }`}
+                  className={`p-3 rounded-full transition-all duration-200 shadow-md ${currentScreen === 0
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#CF0306] text-white hover:bg-[#b8020a] active:scale-95 hover:shadow-lg"
+                    }`}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -389,11 +382,10 @@ export function OnboardingScreen({ onComplete, onSkip }: OnboardingScreenProps) 
                     <button
                       key={index}
                       onClick={() => handleDotClick(index)}
-                      className={`rounded-full transition-all duration-300 ${
-                        index === currentScreen
-                          ? "w-6 h-2 bg-[#CF0306] shadow-sm"
-                          : "w-2 h-2 bg-gray-400 hover:bg-gray-300 cursor-pointer"
-                      }`}
+                      className={`rounded-full transition-all duration-300 ${index === currentScreen
+                        ? "w-6 h-2 bg-[#CF0306] shadow-sm"
+                        : "w-2 h-2 bg-gray-400 hover:bg-gray-300 cursor-pointer"
+                        }`}
                     />
                   ))}
                 </div>

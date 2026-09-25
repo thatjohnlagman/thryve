@@ -48,7 +48,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   return (
     <div className="fixed inset-0 bg-white z-50 overflow-hidden" onClick={handleScreenClick}>
       <div
-        className={`absolute transition-all duration-1500 ease-out`}
+        className={`absolute z-10 transition-all duration-1500 ease-out`}
         style={{
           width: "230px",
           height: "220px",
@@ -61,7 +61,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         }}
       >
         <img
-          src="/assets/yve_splash_teeth_smile_1.svg"
+          src="/assets/yve_splash_smile_1.svg"
           alt="Mascot"
           className="w-full h-full object-contain"
         />
@@ -69,7 +69,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
       {/* Second mascot - appears at center, then moves to letter "e" */}
       <div
-        className={`absolute transition-all duration-1000 ease-out`}
+        className={`absolute z-10 transition-all duration-1000 ease-out`}
         style={{
           width: "230px",
           height: "220px",
@@ -82,14 +82,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         }}
       >
         <img
-          src="/assets/yve_splash_smile_1.svg"
+          src="/assets/yve_splash_teeth_smile_1.svg"
           alt="Mascot Center"
           className="w-full h-full object-contain"
         />
       </div>
 
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out ${animationPhase >= 3 && animationPhase < 5 ? "opacity-100" : "opacity-0"
+        className={`absolute z-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out ${animationPhase >= 3 && animationPhase < 5 ? "opacity-100" : "opacity-0"
           }`}
       >
         <img
