@@ -135,6 +135,21 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuthSession = async () => {
+      const isDevelopmentAuthBypass =
+        process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true"
+
+      if (isDevelopmentAuthBypass) {
+        console.warn("[App] Development auth bypass enabled; no Supabase session was created.")
+        setDebugInfo((prev) => ({
+          ...prev,
+          authState: "authenticated",
+          authError: "Development auth bypass enabled",
+          timestamp: new Date().toISOString(),
+        }))
+        setAuthState("authenticated")
+        return
+      }
+
       try {
         console.log("Checking auth session...")
         const {
