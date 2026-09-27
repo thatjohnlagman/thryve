@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from "react"
 import {
   Lightbulb,
   Calendar,
+  Clock,
+  Bell,
+  User,
   Eye,
   Search,
   ArrowUpDown,
@@ -54,7 +57,10 @@ interface PrototypesScreenProps {
 
 export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
   const [webBrowserUrl, setWebBrowserUrl] = useState<string | null>(null)
-  const [firstName, setFirstName] = useState("Name here")
+  const [firstName, setFirstName] = useState("Miggy")
+  const [lastName, setLastName] = useState("Mango")
+  const [currentDateStr, setCurrentDateStr] = useState("Wednesday, August 27, 2025")
+  const [currentTimeStr, setCurrentTimeStr] = useState("9:41 A.M.")
   const [showPrototypeGenerator, setShowPrototypeGenerator] = useState(false)
   const [showViewAll, setShowViewAll] = useState(false)
   const [targetMarket, setTargetMarket] = useState("")
@@ -79,6 +85,52 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
     setIsNavbarVisible(newVisibility)
     onNavbarToggle?.(newVisibility)
   }
+
+  const displayName = useMemo(() => {
+    const full = `${firstName} ${lastName}`.trim()
+    if (full) return full
+    if (firstName) return firstName
+    return ""
+  }, [firstName, lastName])
+
+  const todayCount = useMemo(() => {
+    const today = new Date().toDateString()
+    return prototypes.filter((p) => {
+      if (!p.created_at) return false
+      try {
+        return new Date(p.created_at).toDateString() === today
+      } catch {
+        return false
+      }
+    }).length
+  }, [prototypes])
+
+  const prototypeCount = todayCount > 0 ? todayCount : prototypes.length
+  const prototypeLabel = todayCount > 0 ? "Generated today" : (prototypes.length > 0 ? "Generated this week" : "Generated today")
+
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date()
+      setCurrentDateStr(
+        now.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      )
+      setCurrentTimeStr(
+        now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      )
+    }
+    updateDateTime()
+    const timer = setInterval(updateDateTime, 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -155,7 +207,7 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
 
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
-            .select("first_name")
+            .select("first_name, last_name")
             .eq("id", user.id)
             .single()
 
@@ -167,6 +219,7 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
               data: {
                 hasProfile: !!profile,
                 firstName: profile?.first_name,
+                lastName: profile?.last_name,
                 profileError: profileError?.message,
                 profileErrorCode: profileError?.code,
                 rawProfileData: profile,
@@ -175,43 +228,38 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
           })
 
           if (profile?.first_name) {
-            await fetch("/api/debug", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: "[PROTOTYPES-PROFILE] Setting firstName:",
-                data: {
-                  newFirstName: profile.first_name,
-                  previousFirstName: firstName,
-                },
-              }),
-            })
             setFirstName(profile.first_name)
-          } else {
-            await fetch("/api/debug", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: "[PROTOTYPES-PROFILE] No first_name found - keeping default:",
-                data: {
-                  profileFirstName: profile?.first_name,
-                  defaultFirstName: firstName,
-                  profileExists: !!profile,
-                },
-              }),
-            })
+            if (profile.last_name) {
+              setLastName(profile.last_name)
+            }
+          } else if (user.user_metadata?.first_name || user.user_metadata?.name || user.user_metadata?.full_name) {
+            const fullName = user.user_metadata.full_name || user.user_metadata.name || ""
+            if (fullName) {
+              const parts = fullName.trim().split(" ")
+              setFirstName(parts[0])
+              setLastName(parts.slice(1).join(" "))
+            } else {
+              setFirstName(user.user_metadata.first_name || "")
+              setLastName(user.user_metadata.last_name || "")
+            }
+          } else if (user.email) {
+            const prefix = user.email.split("@")[0]
+            setFirstName(prefix.charAt(0).toUpperCase() + prefix.slice(1))
+            setLastName("")
           }
         } else {
-          await fetch("/api/debug", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: "[PROTOTYPES-PROFILE] No authenticated user found",
-              data: {
-                authError: authError?.message,
-              },
-            }),
-          })
+          // If no active auth session (e.g. dev auth bypass mode):
+          // Query the profiles table for any available profile so local testing reflects real DB data
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .order("created_at", { ascending: false })
+            .limit(1)
+
+          if (profiles && profiles.length > 0 && profiles[0].first_name) {
+            setFirstName(profiles[0].first_name)
+            setLastName(profiles[0].last_name || "")
+          }
         }
       } catch (error) {
         await fetch("/api/debug", {
@@ -438,45 +486,51 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
         error: userError,
       } = await supabase.auth.getUser()
 
-      if (userError || !user) {
-        console.error("[PROTOTYPES-SCREEN] Authentication failed:", userError?.message)
-        console.log("[PROTOTYPES-SCREEN] User not authenticated, redirecting or showing login")
-        return
-      }
+      if (user) {
+        console.log("[PROTOTYPES-SCREEN] User authenticated:", user.id)
 
-      console.log("[PROTOTYPES-SCREEN] User authenticated:", user.id)
+        // Get session for auth headers
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      // Get session for auth headers
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        console.log("[PROTOTYPES-SCREEN] Calling API with auth...")
+        const response = await fetch("/api/prototypes/generate", {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        })
 
-      console.log("[PROTOTYPES-SCREEN] Calling API with auth...")
-      const response = await fetch("/api/prototypes/generate", {
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      })
-
-      console.log("[PROTOTYPES-SCREEN] API Response:")
-      console.log(`   - status: ${response.status}`)
-      console.log(`   - ok: ${response.ok}`)
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log(`[PROTOTYPES-SCREEN] Fetched ${data.prototypes?.length || 0} prototypes`)
-        setPrototypes(data.prototypes || [])
-
-        // Log prototype details for debugging
-        if (data.prototypes && data.prototypes.length > 0) {
-          console.log("[PROTOTYPES-SCREEN] Prototype details:")
-          data.prototypes.forEach((proto: any, index: number) => {
-            console.log(`   ${index + 1}. ${proto.title} - Status: ${proto.status} - URL: ${proto.v0_url || "None"}`)
-          })
+        if (response.ok) {
+          const data = await response.json()
+          console.log(`[PROTOTYPES-SCREEN] Fetched ${data.prototypes?.length || 0} prototypes`)
+          setPrototypes(data.prototypes || [])
+        } else {
+          const errorText = await response.text()
+          console.error("[PROTOTYPES-SCREEN] API request failed:", errorText)
         }
       } else {
-        const errorText = await response.text()
-        console.error("[PROTOTYPES-SCREEN] API request failed:", errorText)
+        // Fallback for dev auth bypass mode: query prototypes directly from Supabase
+        console.log("[PROTOTYPES-SCREEN] No authenticated session, querying prototypes directly from database...")
+        const { data: dbPrototypes, error: dbError } = await supabase
+          .from("prototypes")
+          .select(`
+            *,
+            trends (
+              title,
+              category,
+              impact
+            )
+          `)
+          .order("created_at", { ascending: false })
+          .limit(20)
+
+        if (!dbError && dbPrototypes) {
+          console.log(`[PROTOTYPES-SCREEN] Fetched ${dbPrototypes.length} prototypes directly from DB`)
+          setPrototypes(dbPrototypes)
+        } else if (dbError) {
+          console.error("[PROTOTYPES-SCREEN] Direct DB query failed:", dbError)
+        }
       }
     } catch (error) {
       console.error("[PROTOTYPES-SCREEN] =================================")
@@ -713,81 +767,157 @@ Focus on creating a practical, usable prototype that demonstrates the core funct
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="px-2 py-5 bg-white">
-        <div className="h-16 flex items-center justify-center mb-4 relative">
-          <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_nav_logo.svg"
-            alt="thryve"
-            className="h-12"
-          />
+    <div className="min-h-screen bg-[#FDFDFD] relative overflow-x-hidden">
+      {/* Decorative Brand Geometric Accents */}
+      <div className="absolute inset-x-0 top-0 h-96 pointer-events-none select-none overflow-hidden z-0">
+        {/* Left of logo: red & yellow chevron */}
+        <div className="absolute top-4 sm:top-5 left-1/2 -translate-x-[160px] sm:-translate-x-[185px]">
+          <svg width="48" height="34" viewBox="0 0 48 34" fill="none">
+            <polygon points="34,0 0,17 34,34" fill="#FF0000" />
+            <polygon points="30,5 10,17 30,29" fill="#FFE500" />
+          </svg>
+        </div>
+
+        {/* Top-right above logo: yellow chevron with red tip */}
+        <div className="absolute top-2 sm:top-3 left-1/2 translate-x-[75px] sm:translate-x-[95px]">
+          <svg width="52" height="36" viewBox="0 0 52 36" fill="none">
+            <polygon points="0,2 38,18 0,34" fill="#FFE500" />
+            <polygon points="38,2 50,18 38,34" fill="#FF0000" />
+          </svg>
+        </div>
+
+        {/* Far-left edge: yellow chevron and red triangle */}
+        <div className="absolute top-24 -left-1">
+          <svg width="30" height="54" viewBox="0 0 30 54" fill="none">
+            <polygon points="0,0 26,18 0,34" fill="#FFE500" />
+            <polygon points="0,24 20,38 0,52" fill="#FF0000" />
+          </svg>
+        </div>
+
+        {/* Far-right edge: red triangle pointing inward */}
+        <div className="absolute top-28 -right-1">
+          <svg width="24" height="44" viewBox="0 0 24 44" fill="none">
+            <polygon points="24,0 2,22 24,44" fill="#FF0000" />
+          </svg>
         </div>
       </div>
 
-  <div className="px-4 lg:pl-8 xl:pl-12 pb-8">
-        <div className="mb-5 relative">
-          <Card className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 shadow-xl relative overflow-hidden border-0">
-            <CardContent className="p-3 relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
-              <div className="flex items-start justify-between relative z-10">
-                <div className="flex-1 pr-2 sm:pr-4 pl-4 sm:pl-6 md:pl-8">
-                  <div className="mb-1 sm:mb-2">
-                    <div className="flex items-start sm:items-baseline justify-between mb-1 sm:mb-0.5 gap-2">
-                      <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">Hi there,</h2>
-                      <div className="text-right">
-                        <span className="block text-sm sm:text-lg font-bold text-yellow-200 leading-tight">
-                          {prototypes.length} Prototypes
-                        </span>
-                        <span className="text-[10px] sm:text-sm text-white/80">Generated this week</span>
-                      </div>
-                    </div>
-                    <div className="flex items-baseline justify-between mb-1 sm:mb-2">
-                      <h3 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-yellow-300 flex items-center gap-2 leading-none">
-                        {firstName}!
-                        <img
-                          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/welcome_hand_wave1.svg"
-                          alt="Waving Hand"
-                          className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600"
-                        />
-                      </h3>
-                    </div>
+      {/* Top Header Bar */}
+      <div className="relative z-10 px-4 sm:px-6 lg:px-10 pt-4 pb-2 flex items-center justify-between">
+        {/* Left spacer for centering logo */}
+        <div className="w-20 sm:w-24"></div>
+
+        {/* Centered Logo */}
+        <div className="flex-1 flex justify-center items-center">
+          <img
+            src="/assets/Thryve_1st.svg"
+            alt="thryve"
+            className="h-10 sm:h-12 w-auto object-contain"
+          />
+        </div>
+
+        {/* Right Action Icons: Notification Bell & Profile Avatar */}
+        <div className="w-20 sm:w-24 flex items-center justify-end gap-2.5 sm:gap-3">
+          <button
+            type="button"
+            className="p-1.5 sm:p-2 text-slate-900 hover:text-red-600 hover:bg-slate-100 rounded-full transition-colors relative"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+          </button>
+          <button
+            type="button"
+            className="p-0.5 text-slate-900 hover:ring-2 hover:ring-red-400 rounded-full transition-all"
+            aria-label="User Profile"
+          >
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-slate-900 flex items-center justify-center bg-transparent">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900 stroke-[2.2]" />
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 lg:pl-8 xl:pl-12 pb-8 relative z-10">
+        {/* Hero Welcome Card */}
+        <div className="mb-6 relative">
+          <div className="bg-white rounded-[26px] sm:rounded-[32px] p-5 sm:p-7 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.05)] border border-slate-100/90 relative">
+            <div className="flex items-start justify-between gap-4">
+              {/* Left Info Column */}
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-slate-600 font-bold text-lg sm:text-xl lg:text-2xl tracking-tight leading-none mb-1">
+                  Welcome
+                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black text-slate-900 tracking-tight leading-tight">
+                    {displayName ? `${displayName}!` : "there!"}
+                  </h1>
+                  <img
+                    src="/assets/hand-wave.svg"
+                    alt="Waving Hand"
+                    className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 animate-bounce duration-1000"
+                  />
+                </div>
+
+                {/* Subtitles */}
+                <div className="mt-2.5 sm:mt-3.5 space-y-1">
+                  <p className="text-[#475569] font-bold text-xs sm:text-sm md:text-base leading-snug">
+                    Thryve is ready to deliver Market-Ready Solutions.
+                  </p>
+                  <p className="text-[#64748b] font-medium text-[11px] sm:text-xs md:text-sm leading-snug">
+                    AI detected opportunity in mobile payment workflows in 5 minutes
+                  </p>
+                </div>
+
+                {/* Date & Time Row */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-[11px] sm:text-xs md:text-sm font-semibold text-[#8ea2b8]">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8ea2b8] flex-shrink-0" />
+                    <span>{currentDateStr}</span>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2.5 sm:p-3 lg:p-4 mb-2 bg-gradient-to-r from-white/15 to-transparent">
-                    <p className="text-white/90 text-[11px] sm:text-sm lg:text-base xl:text-lg font-medium mb-0.5 sm:mb-1 lg:mb-2">Thryve is ready to deliver</p>
-                    <p className="text-yellow-200 text-xs sm:text-sm lg:text-base xl:text-lg font-semibold">Market-Ready Solutions</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-white/80 text-[10px] sm:text-xs lg:text-sm xl:text-base">
-                    <Calendar className="w-3 h-3 text-yellow-300" />
-                    <span>{getCurrentDate()}</span>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8ea2b8] flex-shrink-0" />
+                    <span>{currentTimeStr}</span>
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-0 right-1 sm:-bottom-10 sm:-right-4 w-28 h-28 sm:w-60 sm:h-60 z-20 opacity-90 sm:opacity-85 pointer-events-none select-none hero-mascot">
-                <img
-                  src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/yve_prototype_hero.svg"
-                  alt="Yve"
-                  className="w-full h-full drop-shadow-lg"
-                />
+
+              {/* Right Column: Generated Stat */}
+              <div className="text-right flex-shrink-0 pt-0.5">
+                <span className="block text-xs sm:text-sm font-semibold text-[#8ea2b8]">
+                  {prototypeLabel}
+                </span>
+                <span className="block text-xl sm:text-2xl md:text-3xl font-black text-[#85181b] leading-tight mt-0.5">
+                  {prototypeCount} {prototypeCount === 1 ? "Prototype" : "Prototypes"}
+                </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Mascot badge overlapping bottom right - whole round Yve */}
+            <div className="absolute -bottom-5 right-2 sm:-bottom-6 sm:right-4 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 z-20 pointer-events-none select-none drop-shadow-lg -rotate-[6deg]">
+              <img
+                src="/assets/yve_splash_smile_1.svg"
+                alt="Yve Mascot"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="mb-4">
+        {/* Action Buttons */}
+        <div className="mb-6">
           <div className="flex gap-3">
             <Button
               onClick={() => setShowPrototypeGenerator(true)}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 lg:py-5 xl:py-6 rounded-lg font-medium text-sm sm:text-base lg:text-lg xl:text-xl transition-all"
+              className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-sm px-6 py-3 lg:py-5 xl:py-6 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition-all"
             >
               + Generate Prototype
             </Button>
             <Button
               onClick={handleViewAll}
               variant="outline"
-              className="flex-1 border-gray-300 text-gray-700 px-6 py-3 lg:py-5 xl:py-6 rounded-lg font-medium text-sm sm:text-base lg:text-lg xl:text-xl hover:bg-gray-50 bg-transparent flex items-center gap-2 transition-all"
+              className="flex-1 border-slate-200 text-slate-700 px-6 py-3 lg:py-5 xl:py-6 rounded-xl font-semibold text-sm sm:text-base lg:text-lg hover:bg-slate-50 bg-white flex items-center justify-center gap-2 transition-all shadow-sm"
             >
-              <Eye className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7" />
+              <Eye className="w-5 h-5" />
               View All
             </Button>
           </div>
@@ -795,9 +925,9 @@ Focus on creating a practical, usable prototype that demonstrates the core funct
 
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg lg:text-2xl xl:text-3xl font-semibold text-gray-900 flex items-center gap-2 lg:ml-[5px]">
-              Recent Prototypes
-              <Zap className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-[#E0000A]" />
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              Recent Action
+              <Zap className="w-5 h-5 lg:w-6 lg:h-6 text-[#E0000A]" />
             </h2>
             <div className="flex items-center gap-2">
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
