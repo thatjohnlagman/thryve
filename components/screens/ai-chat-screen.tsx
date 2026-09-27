@@ -9,13 +9,13 @@ function generateUUID() {
     return crypto.randomUUID()
   }
   // Fallback implementation for HTTP environments
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
   })
 }
-import { Send, User, Plus, Search, Menu, Edit2, Copy, Check, Paperclip, X, Trash2, MoreVertical } from "lucide-react"
+import { Send, User, Plus, Search, Menu, Edit2, Copy, Check, Paperclip, X, Trash2, MoreVertical, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -208,7 +208,7 @@ const removeCodeBlocks = (content: string) => {
 const extractCodeBlocks = (content: string) => {
   console.log("[DEBUG] extractCodeBlocks called with content length:", content.length)
   console.log("[DEBUG] Content preview:", content.substring(0, 300))
-  
+
   // Multiple regex patterns to catch different code block formats
   const patterns = [
     /```(\w+)?\s*\n([\s\S]*?)\n\s*```/g, // Standard format with newlines
@@ -221,7 +221,7 @@ const extractCodeBlocks = (content: string) => {
   for (let i = 0; i < patterns.length; i++) {
     const regex = patterns[i]
     console.log(`[DEBUG] Testing pattern ${i + 1}:`, regex.toString())
-    
+
     let match
     while ((match = regex.exec(content)) !== null) {
       console.log(`[DEBUG] Pattern ${i + 1} found match:`, {
@@ -229,7 +229,7 @@ const extractCodeBlocks = (content: string) => {
         language: match[1],
         codeLength: match[2]?.length
       })
-      
+
       const language = match[1]?.toLowerCase() || "text"
       const code = match[2]?.trim()
       if (code && code.length > 0) {
@@ -256,7 +256,7 @@ const extractCodeBlocks = (content: string) => {
     const pythonIndicators = [
       "import streamlit",
       "import pandas",
-      "import plotly", 
+      "import plotly",
       "st.title",
       "st.write",
       "pd.read_csv",
@@ -308,11 +308,33 @@ const extractCodeBlocks = (content: string) => {
 }
 
 export function AIChatScreen() {
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false)
+  const [isPopupVisible, setIsPopupVisible] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcomePopup(true)
+      setTimeout(() => {
+        setIsPopupVisible(true)
+      }, 50)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleClosePopup = () => {
+    setIsPopupVisible(false)
+    setTimeout(() => {
+      setShowWelcomePopup(false)
+    }, 300)
+  }
+
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [contextInfo, setContextInfo] = useState<any>(null)
   const [isInitialState, setIsInitialState] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -515,7 +537,7 @@ export function AIChatScreen() {
       console.log("[AI-Chat-Screen] Loading messages from Supabase (client-side)")
       const messages = await loadMessagesFromSupabase(conversationId)
       setMessages(messages)
-      
+
       // Check deployment status for utility messages
       await checkVersionDeploymentStatus(messages)
     } catch (error) {
@@ -527,26 +549,26 @@ export function AIChatScreen() {
     try {
       const supabase = createClient()
       const deploymentInfo: Record<string, { isDeployed: boolean; dashboardUrl?: string; isExpired?: boolean }> = {}
-      
+
       // Find all messages with utility_version_id
       const versionIds = messages
         .filter(msg => msg.utility_version_id)
         .map(msg => msg.utility_version_id!)
-      
+
       if (versionIds.length > 0) {
         // Check deployment status for these versions
         const { data: versions } = await supabase
           .from("utility_versions")
           .select("id, is_deployed, dashboard_url, dashboard_expires_at")
           .in("id", versionIds)
-        
+
         if (versions) {
           const now = new Date()
           versions.forEach(version => {
             // Check if dashboard has expired using dashboard_expires_at column
-            const isExpired = version.dashboard_expires_at && 
+            const isExpired = version.dashboard_expires_at &&
               now > new Date(version.dashboard_expires_at)
-            
+
             deploymentInfo[version.id] = {
               isDeployed: version.is_deployed && !isExpired,
               dashboardUrl: (version.is_deployed && !isExpired) ? version.dashboard_url : undefined,
@@ -555,7 +577,7 @@ export function AIChatScreen() {
           })
         }
       }
-      
+
       // Also check main utility deployment status for messages that might be related to v1
       if (contextInfo?.type === "utility") {
         const { data: utility } = await supabase
@@ -563,11 +585,11 @@ export function AIChatScreen() {
           .select("id, status, dashboard_url, dashboard_expires_at")
           .eq("id", contextInfo.id)
           .single()
-        
+
         if (utility) {
-          const isExpired = utility.dashboard_expires_at && 
+          const isExpired = utility.dashboard_expires_at &&
             new Date() > new Date(utility.dashboard_expires_at)
-          
+
           // Store main utility info for potential use
           deploymentInfo[`main_${utility.id}`] = {
             isDeployed: utility.status === 'ready' && !!utility.dashboard_url && !isExpired,
@@ -576,7 +598,7 @@ export function AIChatScreen() {
           }
         }
       }
-      
+
       setVersionDeploymentInfo(deploymentInfo)
       console.log("[AI-Chat] Version deployment info loaded:", deploymentInfo)
     } catch (error) {
@@ -895,7 +917,7 @@ export function AIChatScreen() {
                 console.log("Code revision saved as version", nextVersion, "with ID:", insertedVersion.id)
                 // Link this message to the created version
                 botMessage.utility_version_id = insertedVersion.id
-                
+
                 // Mark this version as not deployed initially
                 setVersionDeploymentInfo(prev => ({
                   ...prev,
@@ -962,14 +984,14 @@ export function AIChatScreen() {
       console.log("Completing stream for message:", currentMessage.id)
       const finalContent = response.message || response
       const hasCode = extractCodeBlocks(finalContent).length > 0
-      
+
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === currentMessage.id ? { 
-            ...msg, 
-            content: finalContent, 
-            isStreaming: false, 
-            has_code: hasCode 
+          msg.id === currentMessage.id ? {
+            ...msg,
+            content: finalContent,
+            isStreaming: false,
+            has_code: hasCode
           } : msg,
         ),
       )
@@ -1008,7 +1030,7 @@ export function AIChatScreen() {
     // Restore context information if conversation has context
     if (conversation.context_type && conversation.context_id) {
       console.log("[AI-Chat] Restoring context for conversation:", conversation.context_type, conversation.context_id)
-      
+
       // For utility context, fetch the utility information
       if (conversation.context_type === "utility") {
         try {
@@ -1125,9 +1147,8 @@ export function AIChatScreen() {
       )}
 
       <div
-        className={`absolute right-0 top-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl border-l border-gray-200 ${
-          isSidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`absolute right-0 top-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl border-l border-gray-200 ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="p-4 h-full flex flex-col">
           <div className="relative mb-4">
@@ -1204,35 +1225,82 @@ export function AIChatScreen() {
         </div>
       </div>
 
-      <div 
-        className="flex flex-col w-full overflow-hidden" 
+      <div
+        className="flex flex-col w-full overflow-hidden"
         data-chat-container
         style={{ height: 'var(--app-height, 100vh)' }}
       >
-        <div className="p-1 bg-white border-b border-gray-200 flex-shrink-0">
+        <div className="px-4 py-2 bg-white border-b border-gray-100 flex-shrink-0 z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img
-                src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ai_yve.svg"
-                alt="AI Yve"
-                className="w-16 h-16"
-              />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-1.5 -ml-1 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Open chat history"
+              >
+                <Menu className="w-6 h-6 text-gray-800" />
+              </button>
+              <div className="flex items-center gap-2 select-none">
+                <img
+                  src="assets/yve_splash_smile_1.svg"
+                  alt="Yve mascot"
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+                <img
+                  src="assets/yve_wordmark.svg"
+                  alt="yve"
+                  className="h-7 w-auto object-contain flex-shrink-0"
+                />
+              </div>
             </div>
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Open chat history"
-            >
-              <Menu className="w-5 h-5 text-gray-600" />
-            </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-800"
+                aria-label="More options"
+              >
+                <MoreHorizontal className="w-6 h-6 text-gray-800" />
+              </button>
+              {isHeaderMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setIsHeaderMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                    <button
+                      onClick={() => {
+                        handleNewChat()
+                        setIsHeaderMenuOpen(false)
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 text-gray-500" />
+                      <span>New Chat</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsSidebarOpen(true)
+                        setIsHeaderMenuOpen(false)
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                    >
+                      <Menu className="w-4 h-4 text-gray-500" />
+                      <span>Chat History</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-  <div className="flex-1 flex flex-col min-h-0 lg:pl-8 xl:pl-12">
+        <div className="flex-1 flex flex-col min-h-0 lg:pl-8 xl:pl-12">
           {isInitialState && messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center px-6 leading-5">
               <img
-                src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/big_ai_yve.svg"
+                src="assets/thryve-wink.svg"
                 alt="AI Yve"
                 className="w-32 h-32 mb-6"
               />
@@ -1252,7 +1320,7 @@ export function AIChatScreen() {
                       {message.message_type === "bot" && (
                         <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
                           <img
-                            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/yve_chat_bubble.svg"
+                            src="assets/thryve-wink.svg"
                             alt="Yve"
                             className="w-8 h-8"
                           />
@@ -1533,7 +1601,7 @@ export function AIChatScreen() {
                                                 const deploymentInfo = versionId ? versionDeploymentInfo[versionId] : null
                                                 const isDeployed = deploymentInfo?.isDeployed || false
                                                 const isDeploying = deploymentStatus[message.id] === "deploying"
-                                                
+
                                                 if (isDeploying) {
                                                   return (
                                                     <Button
@@ -1567,7 +1635,7 @@ export function AIChatScreen() {
                                                       onClick={async () => {
                                                         try {
                                                           setDeploymentStatus(prev => ({ ...prev, [message.id]: "deploying" }))
-                                                          
+
                                                           console.log(
                                                             "[AI-Chat] Deploying dashboard for utility:",
                                                             contextInfo.id,
@@ -1677,9 +1745,9 @@ export function AIChatScreen() {
                                                                   dashboard_expires_at: expiresAt,
                                                                 })
                                                                 .eq("id", message.utility_version_id)
-                                                              
+
                                                               console.log("[AI-Chat] Marked version", message.utility_version_id, "as deployed")
-                                                              
+
                                                               // Update local deployment info
                                                               setVersionDeploymentInfo(prev => ({
                                                                 ...prev,
@@ -1712,7 +1780,7 @@ export function AIChatScreen() {
                                                                   .eq("id", latestVersion.id)
                                                               }
                                                             }
-                                                            
+
                                                             setDeploymentStatus(prev => ({ ...prev, [message.id]: "deployed" }))
 
                                                             // Show the dashboard in modal
@@ -1722,7 +1790,7 @@ export function AIChatScreen() {
                                                             console.error("[AI-Chat] Deployment failed:", result.error)
                                                             alert(
                                                               "Failed to deploy dashboard: " +
-                                                                (result.error || "Unknown error"),
+                                                              (result.error || "Unknown error"),
                                                             )
                                                             setDeploymentStatus(prev => ({ ...prev, [message.id]: "idle" }))
                                                           }
@@ -1962,7 +2030,7 @@ export function AIChatScreen() {
           </div>
         )}
 
-  <div className="p-5 pb-8 bg-white border-t border-gray-200 flex-shrink-0 mb-16 lg:mb-0">
+        <div className="p-5 pb-8 bg-white border-t border-gray-200 flex-shrink-0 mb-16 lg:mb-0">
           <div className="flex items-center gap-3 bg-gray-100 rounded-full px-4 py-1.5">
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -2003,7 +2071,54 @@ export function AIChatScreen() {
           </div>
         </div>
       </div>
-      
+
+      {/* Welcome / Intro Popup Modal */}
+      {showWelcomePopup && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${isPopupVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleClosePopup()
+          }}
+        >
+          <div
+            className={`relative w-full max-w-[340px] sm:max-w-[380px] bg-white rounded-[26px] sm:rounded-[30px] p-6 sm:p-7 shadow-2xl border border-slate-100/80 transition-all duration-300 ease-out ${isPopupVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"
+              }`}
+          >
+            {/* Red Circle Close Button */}
+            <button
+              onClick={handleClosePopup}
+              className="absolute top-4 right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#B81D24] hover:bg-[#9E141B] flex items-center justify-center text-white transition-colors shadow-sm cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 stroke-[2.5]" />
+            </button>
+
+            {/* Modal Header: Title + Divider on left, Mascot on right */}
+            <div className="flex items-center justify-between pr-6">
+              <div>
+                <h2 className="text-2xl sm:text-[26px] font-bold text-slate-900 leading-tight">
+                  Chat Yve
+                </h2>
+                <div className="w-28 sm:w-32 h-1 bg-slate-200 rounded-full mt-2"></div>
+              </div>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+                <img
+                  src="assets/yve_splash_smile_1.svg"
+                  alt="Yve"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+
+            {/* Modal Description */}
+            <p className="text-slate-800 text-[13.5px] sm:text-[15px] leading-relaxed mt-5 font-normal">
+              Stuck on a layout? Just ask Yve. Your personalized AI assistant is here to help you brainstorm ideas, generate specific designs, and solve creative blocks instantly.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Dashboard Browser Modal */}
       {dashboardUrl && (
         <DashboardBrowserModal
