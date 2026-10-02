@@ -1429,7 +1429,7 @@ Focus on creating a fully functional, production-ready prototype that users can 
       <div className="px-2 py-5 bg-white">
         <div className="h-16 flex items-center justify-center mb-4">
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_nav_logo.svg"
+            src="/assets/Thryve_1st.svg"
             alt="thryve"
             className="h-12"
           />

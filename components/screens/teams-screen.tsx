@@ -692,7 +692,7 @@ export function TeamsScreen() {
         <div className="px-2 py-5 bg-white">
           <div className="h-16 flex items-center justify-center mb-4">
             <img
-              src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_nav_logo.svg"
+              src="/assets/Thryve_1st.svg"
               alt="thryve"
               className="h-12"
             />
@@ -716,11 +716,13 @@ export function TeamsScreen() {
           {!hasTeams && !loading ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
               <div className="flex flex-col items-center space-y-4">
-                <img
-                  src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/no_team_mascot.svg"
-                  alt="No workspace mascot"
-                  className="w-40 h-40"
-                />
+                <div className="flex h-40 w-40 flex-col items-center justify-center gap-2">
+                  <img
+                    src="/assets/yve_splash_smile_1.svg"
+                    alt="Yve workspace mascot"
+                    className="h-32 w-auto object-contain"
+                  />
+                </div>
                 <div className="text-center">
                   <h2 className="text-lg font-semibold text-gray-900 mb-1">No workspace yet? Let's get you</h2>
                   <h2 className="text-lg font-semibold text-gray-900">started!</h2>
