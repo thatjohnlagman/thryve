@@ -25,8 +25,13 @@ export function WebBrowserModal({ url, onClose, fileName }: WebBrowserModalProps
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
-  // Ensure the URL is absolute
-  const absoluteUrl = url.startsWith("http") ? url : `https://${url}`
+  // Ensure the URL is valid (preserve local paths starting with /)
+  const absoluteUrl =
+    url.startsWith("http://") || url.startsWith("https://")
+      ? url
+      : url.startsWith("/")
+      ? url
+      : `https://${url}`
 
   const handleRefresh = () => {
     setIsLoading(true)

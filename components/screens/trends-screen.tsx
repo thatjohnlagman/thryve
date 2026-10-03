@@ -34,7 +34,8 @@ interface DetailedResearch {
   }
   competitiveAnalysis: {
     currentState: string
-    bpiPosition: string
+    competitivePosition?: string
+    marketPosition?: string
     marketWindow: string
     competitors: string[]
   }
@@ -59,7 +60,7 @@ interface DetailedResearch {
     keyCustomers: string[]
     valuePropositions: string[]
     keyPartnerships: string[]
-    bpiAlignment: string
+    strategicAlignment?: string
     risks: string[]
   }
 }
@@ -79,7 +80,7 @@ interface Trend {
   generationType?: "automatic" | "manual" // Added generationType field to distinguish automatic vs manual trends
 }
 
-const STORAGE_KEY = "bpi.trends.v1"
+const STORAGE_KEY = "thryve.trends.v1"
 const TRENDS_PER_PAGE = 3
 // const REFRESH_INTERVAL_DAYS = 1 // Adjust this value as needed
 

@@ -1914,7 +1914,7 @@ export function AIChatScreen() {
                         <Button
                           variant="outline"
                           className="rounded-full px-6 py-2 text-sm text-gray-600 border-gray-300 bg-transparent whitespace-nowrap flex-shrink-0"
-                          onClick={() => handleQuickAction(`How can BPI implement ${contextInfo.title}?`)}
+                          onClick={() => handleQuickAction(`How can we implement ${contextInfo.title}?`)}
                         >
                           Implementation Strategy
                         </Button>

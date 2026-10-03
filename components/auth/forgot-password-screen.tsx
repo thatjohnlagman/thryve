@@ -86,7 +86,7 @@ export function ForgotPasswordScreen({ onBackToLogin }: ForgotPasswordScreenProp
                 <Input
                   id="email"
                   type="email"
-                  placeholder="john.doe@bpi.com.ph"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-12"
@@ -114,7 +114,7 @@ export function ForgotPasswordScreen({ onBackToLogin }: ForgotPasswordScreenProp
         {/* Footer */}
         <div className="text-center text-red-100 text-sm">
           <p>Need help? Contact IT Support</p>
-          <p className="text-xs opacity-75 mt-1">support@bpi.com.ph</p>
+          <p className="text-xs opacity-75 mt-1">support@thryve.ai</p>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 {
-  "name": "BPI Innovate",
-  "short_name": "BPI Innovate",
-  "description": "AI-Powered Product Prototyping and Market Insight Platform",
+  "name": "Thryve",
+  "short_name": "Thryve",
+  "description": "Agentic AI Product Prototyping and Market Insight Platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

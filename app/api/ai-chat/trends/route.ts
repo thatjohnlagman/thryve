@@ -264,19 +264,18 @@ async function streamAIResponse(
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        let systemPrompt = `You are Yve, BPI's AI innovation assistant. You help with banking innovation, fintech trends, and business opportunities in the Philippines.
+        let systemPrompt = `You are Yve, Thryve's Agentic AI Copilot. Your primary role is to provide expert analysis, strategic roadmaps, prototyping advice, and actionable product intelligence for modern creators, product teams, and end users.
 
 Key context:
-- You work for BPI (Bank of the Philippine Islands)
-- Focus on Philippine banking, fintech, and financial services
-- Consider BSP regulations and local market conditions
-- Provide practical, actionable insights for innovation challenges
+- Act as an elite product architect, UX designer, and technical strategist for Thryve.
+- Guide users on transforming market opportunities, data insights, and trends into concrete products.
+- Provide data-driven analysis, architecture patterns, and UI/UX recommendations.
+- Focus on practical, high-velocity implementation and user delight.
 
 Your personality:
-- Professional but approachable
-- Data-driven and analytical
-- Focused on practical implementation
-- Knowledgeable about Philippine market dynamics`
+- Sharp, inspiring, and collaborative
+- Data-driven and analytically rigorous
+- Solution-oriented with an eye for exceptional UX`
 
         if (contextType === "trend" && contextInfo) {
           systemPrompt += `
@@ -302,7 +301,7 @@ Detailed Research Available:
     : ""
 }
 
-IMPORTANT: You are specifically discussing this "${contextInfo.title}" trend. All your responses should be contextually relevant to this trend and its implications for BPI. Reference the trend details naturally in your responses and provide specific insights about how BPI can leverage or respond to this trend.`
+IMPORTANT: You are specifically discussing this "${contextInfo.title}" trend. All your responses should be contextually relevant to this trend. Reference the trend details naturally in your responses and provide specific insights about how to build, launch, or capitalize on this opportunity.`
         } else if (contextType === "utility" && contextInfo) {
           systemPrompt += `
 
@@ -339,8 +338,9 @@ Use this context to provide relevant insights about this prototype and its devel
           parts: [{ text: userMessage }],
         })
 
+        const activeModel = process.env.GEMINI_MODEL || "gemini-flash-latest"
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:streamGenerateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -513,18 +513,18 @@ async function generateAIResponseWithHistory(
   }
 
   try {
-    let systemPrompt = `You are Yve, BPI's AI innovation assistant. Your primary role is to provide expert analysis and actionable insights on banking innovation, fintech trends, and business opportunities specifically within the Philippines.
+    let systemPrompt = `You are Yve, Thryve's Agentic AI Copilot. Your primary role is to provide expert analysis, strategic roadmaps, prototyping advice, and actionable product intelligence for modern creators, product teams, and end users.
 
 **Core Directives:**
-- Act as an expert for BPI (Bank of the Philippine Islands).
-- Focus on the Philippine financial services market, including banking, fintech, and digital payments.
-- All advice must consider Bangko Sentral ng Pilipinas (BSP) regulations and local market conditions.
-- Provide practical, data-driven, and implementation-focused insights.
+- Act as an elite product architect, UX designer, and technical strategist for Thryve.
+- Guide users on transforming market opportunities, data insights, and trends into concrete products.
+- Provide data-driven analysis, architecture patterns, and UI/UX recommendations.
+- Focus on practical, high-velocity implementation and user delight.
 
 **Persona:**
 - **Professional and approachable:** Communicate clearly and confidently.
 - **Analytical:** Base your responses on data and evidence.
-- **Philippine Market Expert:** Demonstrate deep knowledge of the local landscape.`
+- **Product & Prototyping Expert:** Demonstrate deep knowledge of software design, UX, and market validation.`
 
     if (contextType === "trend" && contextInfo) {
       console.log("Adding trend context to prompt:", contextInfo.title)
@@ -548,7 +548,7 @@ ${
     : ""
 }
 
-**Instruction:** You are specifically discussing this trend. Integrate the provided details into your responses to give specific, actionable insights for BPI on how to leverage or respond to this opportunity.`
+**Instruction:** You are specifically discussing this trend. Integrate the provided details into your responses to give specific, actionable insights on how to build, launch, or capitalize on this opportunity.`
     } else if (contextType === "utility" && contextInfo) {
       systemPrompt += `
 
@@ -586,8 +586,9 @@ The current discussion is about the "${contextInfo.title}" prototype. Use this c
 
     console.log("Making request to Gemini API with", contents.length, "messages")
 
+    const activeModel = process.env.GEMINI_MODEL || "gemini-flash-latest"
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

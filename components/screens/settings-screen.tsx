@@ -172,7 +172,7 @@ export function SettingsScreen() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#7A1216] mb-2">Settings</h1>
-        <p className="text-sm text-gray-600">Customize your BPI Innovate experience</p>
+        <p className="text-sm text-gray-600">Customize your Thryve experience</p>
       </div>
 
       {/* User Profile Card */}
@@ -185,7 +185,7 @@ export function SettingsScreen() {
             <div>
               <h3 className="text-lg font-semibold">John Doe</h3>
               <p className="text-sm opacity-90">Product Manager</p>
-              <p className="text-xs opacity-75">john.doe@bpi.com.ph</p>
+              <p className="text-xs opacity-75">user@thryve.ai</p>
             </div>
           </div>
         </CardContent>
@@ -255,7 +255,7 @@ export function SettingsScreen() {
       </Card>
 
       {/* App Version */}
-      <div className="text-center text-xs text-gray-500 pb-4">BPI Innovate v1.0.0</div>
+      <div className="text-center text-xs text-gray-500 pb-4">Thryve v1.0.0</div>
     </div>
   )
 }

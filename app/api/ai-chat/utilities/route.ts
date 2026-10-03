@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextRequest, NextResponse } from "next/server"
 
 // Use higher-capacity model for code generation, can be overridden via env
-const UTILITIES_MODEL = process.env.GEMINI_UTILITIES_MODEL || "gemini-2.5-pro"
+const UTILITIES_MODEL = process.env.GEMINI_UTILITIES_MODEL || process.env.GEMINI_MODEL || "gemini-flash-latest"
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 

@@ -283,10 +283,20 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
   useEffect(() => {
     console.log("[PROTOTYPES-SCREEN] Component mounted - running initial effects")
     fetchPrototypes()
-    // Also check for automatic trends that need prototype generation
-    console.log("[PROTOTYPES-SCREEN] About to call checkAndGenerateFromAutoTrends...")
     checkAndGenerateFromAutoTrends()
   }, [])
+
+  // Auto-refresh when any prototype is in 'Generating' status
+  useEffect(() => {
+    const hasGenerating = prototypes.some((p) => p.status === "Generating")
+    if (!hasGenerating) return
+
+    const interval = setInterval(() => {
+      fetchPrototypes(true)
+    }, 3500)
+
+    return () => clearInterval(interval)
+  }, [prototypes])
 
   async function checkAndGenerateFromAutoTrends() {
     try {
@@ -471,75 +481,48 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
     setCurrentPage(1)
   }, [searchQuery, sortBy])
 
-  const fetchPrototypes = async () => {
-    console.log("[PROTOTYPES-SCREEN] =================================")
-    console.log("[PROTOTYPES-SCREEN] FETCHING PROTOTYPES")
-    console.log("[PROTOTYPES-SCREEN] =================================")
-
+  const fetchPrototypes = async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
 
-      // Handle authentication client-side like other screens
       const supabase = createClient()
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
+      let userId: string | null = null
+      let accessToken: string | undefined = undefined
 
-      if (user) {
-        console.log("[PROTOTYPES-SCREEN] User authenticated:", user.id)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (user) userId = user.id
 
-        // Get session for auth headers
         const {
           data: { session },
         } = await supabase.auth.getSession()
+        accessToken = session?.access_token
+      } catch {}
 
-        console.log("[PROTOTYPES-SCREEN] Calling API with auth...")
-        const response = await fetch("/api/prototypes/generate", {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        })
+      const headers: Record<string, string> = {}
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`
+      }
 
-        if (response.ok) {
-          const data = await response.json()
-          console.log(`[PROTOTYPES-SCREEN] Fetched ${data.prototypes?.length || 0} prototypes`)
-          setPrototypes(data.prototypes || [])
-        } else {
-          const errorText = await response.text()
-          console.error("[PROTOTYPES-SCREEN] API request failed:", errorText)
-        }
+      const url = userId ? `/api/prototypes/generate?userId=${userId}` : "/api/prototypes/generate"
+      const response = await fetch(url, {
+        headers,
+        cache: "no-store",
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPrototypes(data.prototypes || [])
       } else {
-        // Fallback for dev auth bypass mode: query prototypes directly from Supabase
-        console.log("[PROTOTYPES-SCREEN] No authenticated session, querying prototypes directly from database...")
-        const { data: dbPrototypes, error: dbError } = await supabase
-          .from("prototypes")
-          .select(`
-            *,
-            trends (
-              title,
-              category,
-              impact
-            )
-          `)
-          .order("created_at", { ascending: false })
-          .limit(20)
-
-        if (!dbError && dbPrototypes) {
-          console.log(`[PROTOTYPES-SCREEN] Fetched ${dbPrototypes.length} prototypes directly from DB`)
-          setPrototypes(dbPrototypes)
-        } else if (dbError) {
-          console.error("[PROTOTYPES-SCREEN] Direct DB query failed:", dbError)
-        }
+        const errorText = await response.text()
+        console.error("[PROTOTYPES-SCREEN] API request failed:", errorText)
       }
     } catch (error) {
-      console.error("[PROTOTYPES-SCREEN] =================================")
-      console.error("[PROTOTYPES-SCREEN] FETCH PROTOTYPES FAILED")
-      console.error("[PROTOTYPES-SCREEN] =================================")
-      console.error("[PROTOTYPES-SCREEN] Error:", error)
+      console.error("[PROTOTYPES-SCREEN] Fetch prototypes error:", error)
     } finally {
-      setLoading(false)
-      console.log("✅ [PROTOTYPES-SCREEN] Fetch prototypes completed")
+      if (!silent) setLoading(false)
     }
   }
 
@@ -590,81 +573,65 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
   }, [filteredPrototypes, currentPage])
 
   const handleGeneratePrototype = async () => {
-    console.log("[PROTOTYPES-SCREEN] Generate custom prototype clicked")
-
     if (!targetMarket.trim() || !description.trim()) {
       alert("Please fill in both target market and description")
       return
     }
 
-    console.log("[PROTOTYPES-SCREEN] Getting client-side authentication...")
-
-    // Handle authentication on client-side
     const supabase = createClient()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    let userId: string | null = null
+    let accessToken: string | undefined = undefined
 
-    if (userError || !user) {
-      console.error("[PROTOTYPES-SCREEN] Authentication failed:", userError?.message)
-      alert("Authentication required. Please log in to generate prototypes.")
-      return
-    }
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) userId = user.id
 
-    console.log("[PROTOTYPES-SCREEN] User authenticated:", user.id)
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      accessToken = session?.access_token
+    } catch {}
 
     setGenerating(true)
     try {
       const prompt = `Create a modern web application for ${targetMarket}. ${description}. 
 
 Requirements:
-- Clean, professional design
-- Mobile-responsive layout
-- Modern UI components
-- Functional user interface
-- Philippine market context where applicable
+- Clean, professional design with rich aesthetics
+- Mobile-responsive layout and desktop adaptation
+- Modern UI components with genuine interactivity (clickable buttons, view switching)
+- Realistic mock data and intuitive user flows
 
-Focus on creating a practical, usable prototype that demonstrates the core functionality.`
+Focus on creating an impressive, practical, usable prototype that demonstrates core functionality.`
 
-      console.log("[PROTOTYPES-SCREEN] Custom prompt created, length:", prompt.length)
-
-      // Get the session token to pass to API
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`
+      }
 
       const response = await fetch("/api/prototypes/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`, // Pass auth token
-        },
+        headers,
         body: JSON.stringify({
           prompt,
           title: `${targetMarket} Solution`,
           description,
           category: "Custom",
           priority: "Medium",
-          userId: user.id, // Pass userId directly
+          userId: userId,
         }),
       })
 
-      console.log("[PROTOTYPES-SCREEN] API Response:", response.status, response.ok)
-
       if (response.ok) {
-        const result = await response.json()
-        console.log("[PROTOTYPES-SCREEN] Custom prototype generation started:", result)
-
-        // Reset form and close modal
         setTargetMarket("")
         setDescription("")
         setShowPrototypeGenerator(false)
-
-        // Refresh prototypes list
         fetchPrototypes()
-
-        alert("Prototype generation started! Check back in a few moments.")
+        alert("Prototype generation started! It will appear on your screen in a moment.")
       } else {
         const errorData = await response.text()
         console.error("[PROTOTYPES-SCREEN] API request failed:", errorData)
@@ -674,7 +641,6 @@ Focus on creating a practical, usable prototype that demonstrates the core funct
       console.error("[PROTOTYPES-SCREEN] Custom prototype generation failed:", error)
       alert("Failed to start prototype generation. Please try again.")
     } finally {
-      console.log("[PROTOTYPES-SCREEN] Custom prototype generation completed")
       setGenerating(false)
     }
   }

@@ -92,9 +92,45 @@ async function getAllExistingTrendTitles(): Promise<string[]> {
   }
 }
 
+const ONBOARDING_COMPLETED_KEY = "thryve_onboarding_viewed"
+const ONBOARDING_COOKIE_NAME = "thryve_onboarding_viewed"
+
+function getHasViewedOnboarding(): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    if (localStorage.getItem(ONBOARDING_COMPLETED_KEY) === "true") {
+      return true
+    }
+    const hasCookie = document.cookie
+      .split("; ")
+      .some((row) => row.startsWith(`${ONBOARDING_COOKIE_NAME}=true`))
+    if (hasCookie) return true
+  } catch (err) {
+    console.warn("[App] Failed to check onboarding flag:", err)
+  }
+  return false
+}
+
+function setHasViewedOnboarding(): void {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(ONBOARDING_COMPLETED_KEY, "true")
+    const maxAge = 60 * 60 * 24 * 365 // 1 year
+    document.cookie = `${ONBOARDING_COOKIE_NAME}=true; path=/; max-age=${maxAge}; SameSite=Lax`
+  } catch (err) {
+    console.warn("[App] Failed to save onboarding flag:", err)
+  }
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("prototypes")
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window === "undefined") return true
+    if (getHasViewedOnboarding() && sessionStorage.getItem("thryve_splash_seen") === "true") {
+      return false
+    }
+    return true
+  })
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showAuthFade, setShowAuthFade] = useState(false)
   const [authState, setAuthState] = useState<AuthState>("loading")
@@ -452,10 +488,17 @@ export default function Home() {
 
   const handleSplashComplete = () => {
     setShowSplash(false)
-    setShowOnboarding(true)
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("thryve_splash_seen", "true")
+    }
+    const alreadyViewed = getHasViewedOnboarding()
+    if (!alreadyViewed) {
+      setShowOnboarding(true)
+    }
   }
 
   const handleOnboardingComplete = () => {
+    setHasViewedOnboarding()
     setShowAuthFade(true)
     setTimeout(() => {
       setShowOnboarding(false)
@@ -464,6 +507,7 @@ export default function Home() {
   }
 
   const handleOnboardingSkip = () => {
+    setHasViewedOnboarding()
     setShowAuthFade(true)
     setTimeout(() => {
       setShowOnboarding(false)

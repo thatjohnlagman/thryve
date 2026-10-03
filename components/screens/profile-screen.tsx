@@ -325,7 +325,7 @@ export function ProfileScreen() {
         </CardContent>
       </Card>
 
-      <div className="text-center text-xs text-gray-500 pb-4">BPI Innovate v1.0.0</div>
+      <div className="text-center text-xs text-gray-500 pb-4">Thryve v1.0.0</div>
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="sm:max-w-md">

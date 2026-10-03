@@ -50,7 +50,8 @@ interface TrendDetailsSheetProps {
     }
     competitiveAnalysis?: {
       currentState?: string
-      bpiPosition?: string
+      marketPosition?: string
+      competitivePosition?: string
       marketWindow?: string
       competitors?: string[]
     }
@@ -75,7 +76,7 @@ interface TrendDetailsSheetProps {
       keyCustomers: string[]
       valuePropositions: string[]
       keyPartnerships: string[]
-      bpiAlignment: string
+      strategicAlignment?: string
       risks: string[]
       riskMitigation?: string[]
       customerSatisfactionIncrease?: string
@@ -151,7 +152,6 @@ function getSourceName(url: string): string {
       "philstar.com": "Philippine Star",
       "manilatimes.net": "Manila Times",
       "bsp.gov.ph": "Bangko Sentral ng Pilipinas",
-      "bpi.com.ph": "BPI",
       "reuters.com": "Reuters",
       "bloomberg.com": "Bloomberg",
       "ft.com": "Financial Times",
@@ -356,7 +356,7 @@ export function TrendDetailsSheet({
                   }}
                 />
                 <Chip
-                  label="BPI Context"
+                  label="Product Strategy"
                   size="small"
                   sx={{
                     backgroundColor: "rgba(255,255,255,0.2)",
@@ -582,11 +582,11 @@ export function TrendDetailsSheet({
                     </Stack>
 
                     <Typography variant="h6" sx={{ fontWeight: 700, color: brand, mb: 2 }}>
-                      BPI Strategic Alignment
+                      Strategic Alignment
                     </Typography>
                     <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-                      {detailedResearch?.businessModel?.bpiAlignment ||
-                        "BPI alignment details will be available after strategic analysis."}
+                      {detailedResearch?.businessModel?.strategicAlignment ||
+                        "Strategic alignment details will be available after analysis."}
                     </Typography>
                   </MetricsPaper>
                 </Grid>
@@ -771,11 +771,12 @@ export function TrendDetailsSheet({
                       </Box>
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "text.primary" }}>
-                          BPI Position
+                          Competitive Position
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {detailedResearch?.competitiveAnalysis?.bpiPosition ||
-                            "BPI's position in the market will be available after analysis."}
+                          {detailedResearch?.competitiveAnalysis?.competitivePosition ||
+                            detailedResearch?.competitiveAnalysis?.marketPosition ||
+                            "Market position analysis will be available after research."}
                         </Typography>
                       </Box>
                       <Box>

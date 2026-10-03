@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
 
@@ -8,13 +8,18 @@ const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700"],
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#7A1216",
+}
+
 export const metadata: Metadata = {
   title: "Thryve",
   description: "Autonomous AI-Powered Product Prototyping and Market Insight Platform",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-  themeColor: "#7A1216",
   manifest: "/manifest.json",
-  generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -27,7 +32,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="BPI Innovate" />
+        <meta name="apple-mobile-web-app-title" content="Thryve" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className={poppins.className}>{children}</body>

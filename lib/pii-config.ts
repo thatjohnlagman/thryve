@@ -38,9 +38,9 @@ export const bankingPiiPatterns = [
     description: 'Generic customer/account IDs',
   },
   {
-    pattern: /\bBPI-[A-Z0-9]{6,10}\b/g,
-    replacement: '[BPI_ACCOUNT]',
-    description: 'BPI-specific account identifiers',
+    pattern: /\b[A-Z]{3,4}-[A-Z0-9]{6,10}\b/g,
+    replacement: '[ACCOUNT_ID]',
+    description: 'Account identifiers',
   },
   // Common personally identifiable patterns
   {

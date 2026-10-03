@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import { NewsModal } from "./news-modal"
 import { supabase } from "@/lib/supabase"
 
@@ -17,7 +17,7 @@ type NewsItem = {
   createdAt?: number // Added createdAt for consistency
 }
 
-const NEWS_STORAGE_KEY = "bpi.news.v1"
+const NEWS_STORAGE_KEY = "thryve.news.v1"
 const NEWS_REFRESH_INTERVAL_DAYS = 1 // Refresh news daily
 
 async function loadNewsFromSupabase(): Promise<NewsItem[]> {
@@ -25,38 +25,34 @@ async function loadNewsFromSupabase(): Promise<NewsItem[]> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return []
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("news_events")
       .select("*")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
+      .limit(10)
 
+    if (user) {
+      query = query.or(`user_id.eq.${user.id},user_id.is.null`)
+    } else {
+      query = query.is("user_id", null)
+    }
+
+    const { data, error } = await query
     if (error) throw error
 
     console.log("[NewsSection] Loaded from Supabase:", data?.length || 0, "items")
 
-    return (data || []).map((item) => {
-      const newsItem = {
-        id: item.id,
-        title: item.title,
-        summary: item.summary,
-        source: item.source,
-        url: item.url,
-        imageUrl: item.image_url || "", // Ensure we always have a string
-        createdAt: new Date(item.created_at).getTime(),
-      }
-
-      // Debug log for image URLs
-      if (item.image_url) {
-        console.log("[NewsSection] Item has image_url:", item.title, "->", item.image_url)
-      } else {
-        console.log("[NewsSection] Item missing image_url:", item.title)
-      }
-
-      return newsItem
-    })
+    return (data || []).map((item) => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      source: item.source,
+      url: item.url,
+      imageUrl: item.image_url || "",
+      publishedAt: item.published_at || "",
+      createdAt: new Date(item.created_at).getTime(),
+    }))
   } catch (error) {
     console.error("[NewsSection] Failed to load from Supabase:", error)
     return []
@@ -68,25 +64,15 @@ async function saveNewsToSupabase(newsItems: NewsItem[]): Promise<void> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return
 
     const limitedItems = newsItems.slice(0, 10)
 
-    // Delete old news items to maintain limit
-    const { data: existingNews } = await supabase
-      .from("news_events")
-      .select("id")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-
-    if (existingNews && existingNews.length > 0) {
+    if (user) {
       await supabase.from("news_events").delete().eq("user_id", user.id)
     }
 
     const newsData = limitedItems.map((item) => {
       const imageUrl = item.imageUrl && item.imageUrl.startsWith("http") ? item.imageUrl : null
-
-      console.log("[NewsSection] Saving item:", item.title, "with image_url:", imageUrl)
 
       return {
         id: item.id || crypto.randomUUID(),
@@ -94,15 +80,16 @@ async function saveNewsToSupabase(newsItems: NewsItem[]): Promise<void> {
         summary: item.summary,
         source: item.source,
         url: item.url,
-        image_url: imageUrl, // Only save valid HTTP URLs
-        user_id: user.id,
+        image_url: imageUrl,
+        published_at: item.publishedAt || "Recently",
+        user_id: user?.id || null,
       }
     })
 
     const { error } = await supabase.from("news_events").insert(newsData)
-
-    if (error) throw error
-    console.log("[NewsSection] Saved", limitedItems.length, "news items to Supabase with images")
+    if (error) {
+      console.warn("[NewsSection] Supabase save warning:", error.message)
+    }
   } catch (error) {
     console.error("[NewsSection] Failed to save to Supabase:", error)
   }
@@ -113,15 +100,20 @@ async function checkLatestNewsDate(): Promise<Date | null> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return null
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("news_events")
       .select("created_at")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
 
+    if (user) {
+      query = query.or(`user_id.eq.${user.id},user_id.is.null`)
+    } else {
+      query = query.is("user_id", null)
+    }
+
+    const { data, error } = await query
     if (error) throw error
     return data?.[0]?.created_at ? new Date(data[0].created_at) : null
   } catch (error) {
@@ -179,6 +171,7 @@ export function NewsSection() {
   const [items, setItems] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const itemsRef = useRef<NewsItem[]>([])
 
@@ -189,103 +182,65 @@ export function NewsSection() {
     slidesToScroll: 1,
   })
 
+  const fetchLiveNews = useCallback(async () => {
+    try {
+      setRefreshing(true)
+      const res = await fetch("/api/news")
+      const ct = res.headers.get("content-type") || ""
+      const data = ct.includes("application/json") ? await res.json() : { items: [] }
+
+      if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+        const limitedItems = data.items.slice(0, 10).map((item: any) => ({
+          ...item,
+          id: item.id || crypto.randomUUID(),
+          createdAt: Date.now(),
+        }))
+        const nextItems = limitedItems.slice(0, 6)
+        setItems(nextItems)
+        itemsRef.current = nextItems
+        setError(null)
+        await saveNewsToSupabase(limitedItems)
+      } else if (data.error && itemsRef.current.length === 0) {
+        setError(data.error)
+      }
+    } catch (e: any) {
+      console.error("[NewsSection] Live fetch error:", e)
+      if (itemsRef.current.length === 0) setError(e?.message || "Failed to load live news")
+    } finally {
+      setRefreshing(false)
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     let mounted = true
 
     const initializeNews = async () => {
       try {
-        // First, try to load from Supabase
         const supabaseNews = await loadNewsFromSupabase()
-    if (supabaseNews.length > 0) {
-          if (mounted) {
-      const initial = supabaseNews.slice(0, 6)
-      setItems(initial) // Limit to 6 articles
-      itemsRef.current = initial
-            setLoading(false)
-          }
+        if (supabaseNews.length > 0 && mounted) {
+          const initial = supabaseNews.slice(0, 6)
+          setItems(initial)
+          itemsRef.current = initial
+          setLoading(false)
 
-          // Check if we need to refresh based on latest date
           const latestDate = await checkLatestNewsDate()
           if (!shouldRefreshNews(latestDate)) {
-            return // Don't call API if content is fresh
+            return
           }
         }
       } catch (error) {
         console.error("[NewsSection] Error loading news:", error)
       }
 
-      // Check if we should refresh news
       const latestDate = await checkLatestNewsDate()
       if (!shouldRefreshNews(latestDate)) {
         if (mounted) setLoading(false)
-        return // Don't call API if content is fresh
+        return
       }
 
-      // Fetch from API if no cached data or refresh needed
-      try {
-        console.log("[NewsSection] Calling /api/news")
-        const res = await fetch("/api/news")
-        console.log("[NewsSection] API response:", {
-          ok: res.ok,
-          status: res.status,
-          statusText: res.statusText,
-          contentType: res.headers.get("content-type"),
-        })
-
-        const ct = res.headers.get("content-type") || ""
-  const data = ct.includes("application/json") ? await res.json() : { items: [] }
-
-        console.log("[NewsSection] Parsed data:", {
-          hasData: !!data,
-          hasItems: !!data.items,
-          itemsType: typeof data.items,
-          itemsIsArray: Array.isArray(data.items),
-          itemsLength: data.items?.length || 0,
-          dataStructure: JSON.stringify(data, null, 2).substring(0, 300) + "...",
-        })
-
-        if (!res.ok && !data.items) {
-          throw new Error(`HTTP ${res.status}`)
-        }
-        if (mounted) {
-          const hadExisting = itemsRef.current.length > 0
-
-            // If API returned an explicit error (e.g., missing keys) and NO new items, keep existing items.
-          if (data.error && (!data.items || data.items.length === 0)) {
-            if (!hadExisting) setError(data.error)
-            return
-          }
-          const newsItems = (data.items || []) as NewsItem[]
-          console.log("[NewsSection] Processing news items:", {
-            newsItemsCount: newsItems.length,
-            newsItemsType: typeof newsItems,
-            isArray: Array.isArray(newsItems),
-          })
-
-          const limitedItems = newsItems.slice(0, 10).map((item) => ({
-            ...item,
-            id: item.id || crypto.randomUUID(),
-            createdAt: Date.now(),
-          }))
-
-          console.log("[NewsSection] Setting items:", {
-            limitedItemsCount: limitedItems.length,
-          })
-
-          if (limitedItems.length > 0) {
-            const nextItems = limitedItems.slice(0, 6)
-            setItems(nextItems)
-            itemsRef.current = nextItems
-            if (error) setError(null) // clear previous error when we now have items
-          }
-
-          await saveNewsToSupabase(limitedItems)
-        }
-      } catch (e: any) {
-  console.error("[NewsSection] fetch error", e)
-  if (mounted && itemsRef.current.length === 0) setError(e?.message || "Unexpected error")
-      } finally {
-        if (mounted) setLoading(false)
+      if (mounted) {
+        await fetchLiveNews()
       }
     }
 
@@ -294,7 +249,7 @@ export function NewsSection() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [fetchLiveNews])
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
@@ -307,10 +262,20 @@ export function NewsSection() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModalOpen(true)}
-            className="text-sm sm:text-base text-gray-700 hover:text-gray-900 underline-offset-2 hover:underline"
+            className="text-sm sm:text-base text-gray-700 hover:text-gray-900 underline-offset-2 hover:underline mr-1"
             aria-label="View all news"
           >
             View all
+          </button>
+
+          <button
+            onClick={() => fetchLiveNews()}
+            disabled={refreshing || loading}
+            className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            aria-label="Refresh news"
+            title="Refresh news"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-red-600" : ""}`} />
           </button>
 
           {/* Arrows visible on sm+ screens; mobile users primarily swipe */}
@@ -370,13 +335,13 @@ export function NewsSection() {
                       src={
                         n.imageUrl && n.imageUrl.startsWith("http")
                           ? n.imageUrl
-                          : "/placeholder.svg?height=160&width=280&query=philippine%20banking%20news"
+                          : "/placeholder.svg?height=160&width=280&query=technology%20news"
                       }
                       alt={n.title}
                       className="h-full w-full object-cover"
                       onError={(e) => {
-                        console.log("[NewsSection] Image failed to load:", n.imageUrl)
-                        e.currentTarget.src = "/philippine-banking-news.png"
+                        console.log("[NewsSection] Image fallback triggered:", n.imageUrl)
+                        e.currentTarget.src = "/placeholder.svg"
                       }}
                     />
                   </div>

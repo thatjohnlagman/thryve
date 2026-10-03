@@ -29,6 +29,26 @@ interface UploadedFile {
   totalVersions?: number
 }
 
+function formatRelativeTime(dateInput: Date | string | null | undefined): string {
+  if (!dateInput) return "Recently"
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput
+  if (isNaN(date.getTime())) return "Recently"
+
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  if (diffInSeconds < 60) return "Just now"
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
+function checkIsDashboardExpired(item: { dashboard_expires_at?: string | null }): boolean {
+  if (!item?.dashboard_expires_at) return false
+  return new Date(item.dashboard_expires_at).getTime() < Date.now()
+}
+
 type SortOption = "newest" | "oldest" | "name" | "size" | "status"
 
 export function UtilitiesScreen() {
@@ -44,181 +64,179 @@ export function UtilitiesScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("newest")
   const [deployingVersions, setDeployingVersions] = useState<Set<string>>(new Set())
 
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Load utilities on component mount
   useEffect(() => {
     loadExistingUtilities()
+  }, [])
 
-    // Handle view dashboard request from AI chat
-    const handleViewDashboard = async () => {
+  // Handle view dashboard request from AI chat or switch-to-utilities event
+  useEffect(() => {
+    const handlePendingDashboard = () => {
       const utilityId = sessionStorage.getItem("view-utility-dashboard")
-      if (utilityId) {
-        sessionStorage.removeItem("view-utility-dashboard")
-
-        // Find the utility
+      if (utilityId && uploadedFiles.length > 0) {
         const utility = uploadedFiles.find((file) => file.id === utilityId)
         if (utility) {
-          // If dashboard exists and is not expired, show it
+          sessionStorage.removeItem("view-utility-dashboard")
           if (utility.dashboardUrl && !utility.isExpired) {
-            // Ensure the URL is properly formatted as an absolute URL
             let cleanUrl = utility.dashboardUrl
-            if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+            if (!cleanUrl.startsWith("/") && !cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
               cleanUrl = `https://${cleanUrl}`
             }
             setDashboardUrl(cleanUrl)
             setDashboardFileName(utility.name)
+          } else if (utility.generatedCode) {
+            handleRedeployDashboard(utility)
           }
-          // If utility has generated code but no dashboard or expired dashboard, deploy it
-          else if (utility.generatedCode) {
-            console.log("[Utilities] Deploying updated dashboard for:", utility.name)
-            await handleRedeployDashboard(utility)
-          } else {
-            console.log("[Utilities] Utility has no code to deploy:", utilityId)
-          }
-        } else {
-          console.log("[Utilities] Utility not found:", utilityId)
         }
       }
     }
 
-    // Check immediately and also listen for the custom event
-    handleViewDashboard()
-    const eventHandler = () => handleViewDashboard()
+    handlePendingDashboard()
+
+    const eventHandler = () => handlePendingDashboard()
     window.addEventListener("switch-to-utilities", eventHandler)
 
     return () => {
       window.removeEventListener("switch-to-utilities", eventHandler)
     }
-  }, [uploadedFiles]) // Add uploadedFiles as dependency so it works when data loads
+  }, [uploadedFiles])
 
   const loadExistingUtilities = async () => {
     try {
+      setLoading(true)
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) return
+        data: { session },
+      } = await supabase.auth.getSession()
 
-      const { data, error } = await supabase
-        .from("utilities")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+      const headers: Record<string, string> = {}
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
 
-      if (error) throw error
+      const res = await fetch("/api/utilities", {
+        headers,
+        cache: "no-store",
+      })
 
-      const utilities = await Promise.all(
-        (data || []).map(async (item) => {
-          const { data: versionData } = await supabase
-            .from("utility_versions")
-            .select("version_number")
-            .eq("utility_id", item.id)
-            .order("version_number", { ascending: false })
+      if (!res.ok) {
+        throw new Error(`Failed to fetch utilities: ${res.status}`)
+      }
 
-          return {
-            id: item.id,
-            name: item.file_name,
-            size: item.file_size,
-            uploadedAt: getRelativeTime(new Date(item.created_at)),
-            charts: item.charts_count || 0,
-            status: isDashboardExpired(item) ? ("expired" as const) : item.status,
-            dashboardUrl: item.dashboard_url,
-            dashboardExpiresAt: item.dashboard_expires_at,
-            isExpired: isDashboardExpired(item),
-            fileLink: item.file_link,
-            generatedCode: item.generated_code,
-            hasVersions: (versionData?.length || 0) > 0,
-            totalVersions: versionData?.length || 0,
-            currentVersion: versionData?.[0]?.version_number || 1,
-          }
-        }),
-      )
+      const json = await res.json()
+      const data = json.utilities || []
+
+      const utilities: UploadedFile[] = (data || []).map((item: any) => ({
+        id: item.id,
+        name: item.file_name,
+        size: typeof item.file_size === "number" ? `${Math.max(1, Math.round(item.file_size / 1024))} KB` : item.file_size || "1 KB",
+        uploadedAt: formatRelativeTime(item.created_at),
+        charts: item.charts_count || 4,
+        status: checkIsDashboardExpired(item) ? ("expired" as const) : (item.status || "ready"),
+        dashboardUrl: item.dashboard_url,
+        dashboardExpiresAt: item.dashboard_expires_at,
+        isExpired: checkIsDashboardExpired(item),
+        fileLink: item.file_link,
+        generatedCode: item.generated_code,
+        hasVersions: false,
+        totalVersions: 1,
+        currentVersion: 1,
+      }))
 
       setUploadedFiles(utilities)
     } catch (error) {
-      console.error("Error loading utilities:", error)
+      console.error("[Utilities] Error loading utilities:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const getRelativeTime = (date: Date): string => {
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMinutes = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMinutes < 1) return "Just now"
-    if (diffMinutes < 60) return `${diffMinutes} minutes ago`
-    if (diffHours < 24) return `${diffHours} hours ago`
-    return `${diffDays} days ago`
-  }
-
-  const isDashboardExpired = (item: any): boolean => {
-    if (!item.dashboard_expires_at) return false
-    return new Date(item.dashboard_expires_at) < new Date()
-  }
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const processFile = async (file: File) => {
     if (!file) return
 
-    console.log("File selected:", file.name, file.size)
+    console.log("[Utilities] Processing file for analysis:", file.name, file.size)
+    setIsUploading(true)
+    setUploadError(null)
 
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error("User not authenticated")
-
-      const fileExt = file.name.split(".").pop()?.toLowerCase()
-      const fileName = `${user.id}/${Date.now()}-${file.name}`
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("utilities-files")
-        .upload(fileName, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: utilityData, error: dbError } = await supabase
-        .from("utilities")
-        .insert({
-          user_id: user.id,
-          file_name: file.name,
-          file_size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          file_type: fileExt || "csv",
-          file_link: uploadData.path,
-          status: "processing",
-        })
-        .select()
-        .single()
-
-      if (dbError) throw dbError
-
-      const newFile: UploadedFile = {
-        id: utilityData.id,
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-        uploadedAt: "Just now",
-        charts: 0,
-        status: "processing",
-        fileLink: uploadData.path,
-      }
-
-      setUploadedFiles((prev) => [newFile, ...prev])
-      console.log("File uploaded to storage, starting dashboard generation...")
-
-      // Read file content for dashboard generation
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        const csvData = e.target?.result as string
-        await generateDashboard(utilityData.id, csvData, file.name)
-      }
-      reader.readAsText(file)
-    } catch (error) {
-      console.error("Error uploading file:", error)
+    const tempId = `temp-${Date.now()}`
+    const tempFile: UploadedFile = {
+      id: tempId,
+      name: file.name,
+      size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+      uploadedAt: "Just now",
+      charts: 0,
+      status: "generating-dashboard",
+      fileLink: "",
     }
 
+    setUploadedFiles((prev) => [tempFile, ...prev])
+
+    try {
+      const csvData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => reject(new Error("Failed to read file contents"))
+        reader.readAsText(file)
+      })
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+
+      const res = await fetch("/api/utilities/upload", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          fileName: file.name,
+          fileSize: file.size,
+          csvData,
+          fileType: file.name.split(".").pop()?.toLowerCase() || "csv",
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || `Upload failed with status ${res.status}`)
+      }
+
+      setUploadedFiles((prev) =>
+        prev.map((f) => (f.id === tempId ? { ...result.utility } : f))
+      )
+
+      if (result.dashboardUrl) {
+        setDashboardUrl(result.dashboardUrl)
+        setDashboardFileName(file.name)
+      }
+
+      // Re-sync with backend utilities
+      loadExistingUtilities()
+    } catch (err: any) {
+      console.error("[Utilities] Error uploading file:", err)
+      setUploadError(err?.message || "Failed to process data file")
+      setUploadedFiles((prev) =>
+        prev.map((f) => (f.id === tempId ? { ...f, status: "error" } : f))
+      )
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      processFile(file)
+    }
     if (event.target) {
       event.target.value = ""
     }
@@ -330,9 +348,7 @@ export function UtilitiesScreen() {
       
       // Ensure the URL is properly formatted as an absolute URL
       let cleanUrl = file.dashboardUrl
-      
-      // If the URL doesn't start with http:// or https://, add https://
-      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      if (!cleanUrl.startsWith('/') && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
         cleanUrl = `https://${cleanUrl}`
       }
       
@@ -778,8 +794,27 @@ export function UtilitiesScreen() {
           <p className="text-gray-500 lg:text-lg xl:text-xl">Upload and visualize your data with AI insights</p>
         </div>
 
-  <div className="max-w-md mx-auto lg:max-w-none lg:mx-0">
-          <div className="border-2 border-dashed border-[#E0000A] rounded-lg p-8 text-center bg-gray-50">
+        <div className="max-w-md mx-auto lg:max-w-none lg:mx-0">
+          {uploadError && (
+            <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between">
+              <span>{uploadError}</span>
+              <button onClick={() => setUploadError(null)} className="text-red-500 font-bold ml-2 text-lg hover:text-red-700">×</button>
+            </div>
+          )}
+
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) processFile(file);
+            }}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              isDragOver ? "border-red-600 bg-red-50/50" : "border-[#E0000A] bg-gray-50 hover:bg-gray-100/50"
+            }`}
+          >
             <div className="mb-4">
               <div className="w-12 h-12 mx-auto mb-4">
                 <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-[#E0000A]">
@@ -795,16 +830,33 @@ export function UtilitiesScreen() {
             </div>
             <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold text-[#E0000A] mb-2">Upload your Data</h3>
             <p className="text-sm lg:text-base xl:text-lg text-gray-600 mb-6">
-              Select a file from your device to upload
+              Drag & drop your file here, or select from your device
               <br />
               Supported formats: CSV, XLSX
             </p>
             <Button
               onClick={handleChooseFileClick}
-              className="bg-[#E0000A] hover:bg-red-700 text-white px-8 py-2 rounded-full"
+              disabled={isUploading}
+              className="bg-[#E0000A] hover:bg-red-700 text-white px-8 py-2 rounded-full font-medium transition active:scale-95 disabled:opacity-50"
             >
-              Choose file
+              {isUploading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Analyzing Data...
+                </span>
+              ) : (
+                "Choose file"
+              )}
             </Button>
+            <div className="mt-3">
+              <a
+                href="/samples/saas_product_metrics.csv"
+                download="saas_product_metrics.csv"
+                className="text-xs text-[#E0000A] hover:underline inline-flex items-center gap-1 font-medium"
+              >
+                Download Sample CSV Dataset
+              </a>
+            </div>
             <input
               ref={fileInputRef}
               type="file"

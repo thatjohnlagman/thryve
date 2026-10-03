@@ -65,7 +65,7 @@ export function NewsModal({ open, onOpenChange, items }: NewsModalProps) {
                   src={
                     n.imageUrl && n.imageUrl.startsWith("http")
                       ? n.imageUrl
-                      : "/placeholder.svg?height=160&width=280&query=banking%20news"
+                      : "/placeholder.svg?height=160&width=280&query=technology%20news"
                   }
                   alt={n.title}
                   className="h-full w-full object-cover"

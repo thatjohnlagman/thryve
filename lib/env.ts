@@ -4,7 +4,7 @@
 interface GetEnvOptions {
   optional?: boolean
   default?: string
-  maskInError?: boolean // if true, masks value length in thrown error (when default provided and still missing)
+  maskInError?: boolean
 }
 
 export function getEnv(name: string, options: GetEnvOptions = {}): string {
@@ -18,9 +18,9 @@ export function getEnv(name: string, options: GetEnvOptions = {}): string {
   return raw
 }
 
-// Convenience specific getters (extend as needed)
-export const GITHUB_MODELS_API_KEY = () => getEnv("GITHUB_MODELS_API_KEY")
-export const E2B_API_KEY = () => getEnv("E2B_API_KEY")
-export const E2B_STREAMLIT_TEMPLATE_ID = () => getEnv("E2B_STREAMLIT_TEMPLATE_ID", { optional: true, default: "k4thrnhazkpgtothmqqt" })
+// Thryve Core Environment Getters
 export const SUPABASE_URL = () => getEnv("NEXT_PUBLIC_SUPABASE_URL")
-export const SUPABASE_SERVICE_ROLE_KEY = () => getEnv("SUPABASE_SERVICE_ROLE_KEY")
+export const SUPABASE_ANON_KEY = () => getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+export const SUPABASE_SERVICE_ROLE_KEY = () => getEnv("SUPABASE_SERVICE_ROLE_KEY", { optional: true })
+export const GEMINI_API_KEY = () => getEnv("GEMINI_API_KEY")
+export const TAVILY_API_KEY = () => getEnv("TAVILY_API_KEY", { optional: true })

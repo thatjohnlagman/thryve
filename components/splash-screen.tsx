@@ -39,10 +39,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [])
 
   const handleScreenClick = () => {
-    if (animationPhase === 4) {
-      setAnimationPhase(5)
-      setTimeout(() => onComplete(), 2000)
-    }
+    setAnimationPhase(5)
+    setTimeout(() => onComplete(), 200)
   }
 
   return (

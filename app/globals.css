@@ -383,15 +383,18 @@ html.navigating *:after {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* BPI Brand Colors */
+/* Thryve Brand Colors */
+.bg-thryve-primary,
 .bg-bpi-primary {
   background-color: #7a1216;
 }
 
+.text-thryve-primary,
 .text-bpi-primary {
   color: #7a1216;
 }
 
+.border-thryve-primary,
 .border-bpi-primary {
   border-color: #7a1216;
 }
