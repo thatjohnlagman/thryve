@@ -16,6 +16,7 @@ import { User } from "lucide-react"
 import { ProfileScreen } from "@/components/screens/profile-screen"
 // Profile lives in sidebar on desktop; restored dedicated button/modal on mobile
 import { OnboardingScreen } from "@/components/onboarding-screen"
+import { HOME_MIN_WEEKLY_TRENDS, shouldRefreshTrends } from "@/lib/trend-refresh"
 
 type AuthState = "login" | "register" | "forgot-password" | "authenticated" | "loading"
 
@@ -68,10 +69,6 @@ async function checkCurrentWeekTrends() {
     console.error("[App] Failed to load current week trends:", error)
     return []
   }
-}
-
-function shouldRefreshTrends(currentWeekTrends: any[]): boolean {
-  return currentWeekTrends.length < 3
 }
 
 async function getAllExistingTrendTitles(): Promise<string[]> {
@@ -324,7 +321,7 @@ export default function Home() {
         if (trends.length === 0) {
           console.log("[App] No existing trends found, bootstrapping initial trends...")
           await bootstrapNewTrends([])
-        } else if (shouldRefreshTrends(currentWeekAutomaticTrends)) {
+        } else if (shouldRefreshTrends(currentWeekAutomaticTrends, HOME_MIN_WEEKLY_TRENDS)) {
           console.log(
             "[App] Only",
             currentWeekAutomaticTrends.length,
