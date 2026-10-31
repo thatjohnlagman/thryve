@@ -10,14 +10,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
+import { isRegisterFormComplete, isValidEmail } from "@/lib/validation"
 
 interface RegisterScreenProps {
   onRegister: () => void
   onSwitchToLogin: () => void
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
 export default function RegisterScreen({ onRegister, onSwitchToLogin }: RegisterScreenProps) {
@@ -35,20 +32,10 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin }: Register
   const [showPw, setShowPw] = useState(false)
   const [showPw2, setShowPw2] = useState(false)
 
-  const isFormComplete = useMemo(() => {
-    const allFilled =
-      firstName.trim().length > 0 &&
-      lastName.trim().length > 0 &&
-      email.trim().length > 0 &&
-      department.trim().length > 0 &&
-      password.trim().length > 0 &&
-      confirm.trim().length > 0
-
-    const pwOk = password === confirm
-    const emailValid = isValidEmail(email)
-
-    return allFilled && pwOk && emailValid && agreed
-  }, [firstName, lastName, email, department, password, confirm, agreed])
+  const isFormComplete = useMemo(
+    () => isRegisterFormComplete({ firstName, lastName, email, department, password, confirm, agreed }),
+    [firstName, lastName, email, department, password, confirm, agreed],
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

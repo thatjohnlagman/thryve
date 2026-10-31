@@ -101,6 +101,8 @@ class Builder implements PromiseLike<any> {
   lte = this.filter("lte")
   like = this.filter("like")
   ilike = this.filter("ilike")
+  or = this.filter("or")
+  is = this.filter("is")
   order = this.filter("order")
   range = this.filter("range")
   limit = this.filter("limit")
@@ -136,6 +138,15 @@ export class SupabaseMock {
     signOut: vi.fn(),
   }
 
+  /** Every storage operation, in call order. */
+  readonly storageCalls: Array<{ bucket: string; method: "download" | "upload"; args: any[] }> = []
+
+  private storageDownloadHandler:
+    | ((bucket: string, path: string) => Promise<{ data: any; error: any }>)
+    | undefined
+
+  private storageUploadResult: { data: any; error: any } = { data: { path: "" }, error: null }
+
   readonly client = {
     auth: this.auth,
     from: (table: string) => new Builder(this, table),
@@ -144,8 +155,31 @@ export class SupabaseMock {
       return { data: null, error: null }
     }),
     storage: {
-      from: vi.fn(() => ({ download: vi.fn(async () => ({ data: null, error: null })) })),
+      from: (bucket: string) => ({
+        download: async (path: string) => {
+          this.storageCalls.push({ bucket, method: "download", args: [path] })
+          return this.storageDownloadHandler
+            ? this.storageDownloadHandler(bucket, path)
+            : { data: null, error: null }
+        },
+        upload: async (path: string, body: any, opts?: any) => {
+          this.storageCalls.push({ bucket, method: "upload", args: [path, body, opts] })
+          return this.storageUploadResult
+        },
+      }),
     },
+  }
+
+  /** Set the result of storage `.download()` calls (default `{ data: null, error: null }`). */
+  setStorageDownload(handler: (bucket: string, path: string) => Promise<{ data: any; error: any }>) {
+    this.storageDownloadHandler = handler
+    return this
+  }
+
+  /** Set the result of storage `.upload()` calls (default `{ data: { path: "" }, error: null }`). */
+  setStorageUpload(result: { data: any; error: any }) {
+    this.storageUploadResult = result
+    return this
   }
 
   /** Register a handler for a table. Optional `match` filters query contexts. */
@@ -192,6 +226,9 @@ export class SupabaseMock {
     this.auth.signUp.mockReset()
     this.auth.signInWithPassword.mockReset()
     this.auth.signOut.mockReset()
+    this.storageCalls.length = 0
+    this.storageDownloadHandler = undefined
+    this.storageUploadResult = { data: { path: "" }, error: null }
     this.client.rpc.mockReset()
     this.client.rpc.mockImplementation(async (fn: string, ...args: any[]) => {
       this.rpcCalls.push({ fn, args })
