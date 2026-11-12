@@ -43,7 +43,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
       <div className={`lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-64 xl:w-72 lg:bg-white lg:shadow-xl lg:border-r lg:border-gray-200 lg:flex lg:flex-col lg:px-6 lg:py-8 lg:z-50 lg:overflow-y-auto fixed bottom-0 left-0 w-full bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.05)] border-t border-gray-200 z-50`}>
         <div className="hidden lg:block lg:mb-8 lg:pt-4">
           <img
-            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_splash.svg"
+            src="./assets/Thryve_1st.svg"
             alt="Thryve Logo"
             className="w-32 h-auto mx-auto"
           />
