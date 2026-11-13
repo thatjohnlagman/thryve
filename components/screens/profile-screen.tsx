@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 export function ProfileScreen() {
   const [autoGeneration, setAutoGeneration] = useState(false)
@@ -28,6 +29,7 @@ export function ProfileScreen() {
     auto_generate_prototypes: boolean | null
   } | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -133,14 +135,19 @@ export function ProfileScreen() {
   }
 
   const handleSignOut = async () => {
+    setConfirmSignOut(true)
+  }
+
+  const handleConfirmSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error("Sign out error:", error)
       }
-      // The auth state change listener in the main app will handle the UI update
     } catch (error) {
       console.error("Sign out failed:", error)
+    } finally {
+      setConfirmSignOut(false)
     }
   }
 
@@ -346,6 +353,20 @@ export function ProfileScreen() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm sign out dialog */}
+      {confirmSignOut && (
+        <ConfirmDialog
+          open={confirmSignOut}
+          onOpenChange={setConfirmSignOut}
+          title="Sign out"
+          description="You will be signed out of your account and lose your current session."
+          onConfirm={handleConfirmSignOut}
+          confirmLabel="Sign out"
+          cancelLabel="Cancel"
+          destructive
+        />
+      )}
     </div>
   )
 }

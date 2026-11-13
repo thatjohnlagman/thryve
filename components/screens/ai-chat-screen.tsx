@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { DashboardBrowserModal } from "@/components/dashboard-browser-modal"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface Message {
   id: string
@@ -345,6 +346,7 @@ export function AIChatScreen() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileUpload, setShowFileUpload] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [revisionStatus, setRevisionStatus] = useState<Record<string, "processing" | "completed" | "failed" | "generating" | "deploying" | "loading">>({})
   const [deploymentUrls, setDeploymentUrls] = useState<Record<string, string>>({})
   const [codeVisibility, setCodeVisibility] = useState<Record<string, boolean>>({})
@@ -1081,6 +1083,11 @@ export function AIChatScreen() {
   const handleDeleteConversation = async (conversationId: string, event: React.MouseEvent) => {
     event.stopPropagation() // Prevent triggering the load conversation
     setOpenDropdown(null) // Close dropdown after clicking delete
+    setConfirmDeleteId(conversationId)
+  }
+
+  const handleConfirmDeleteConversation = async () => {
+    if (!confirmDeleteId) return
 
     try {
       const response = await fetch("/api/ai-chat/trends", {
@@ -1088,16 +1095,16 @@ export function AIChatScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "delete_conversation",
-          conversation_id: conversationId,
+          conversation_id: confirmDeleteId,
         }),
       })
 
       if (response.ok) {
         // Remove from conversation history
-        setConversationHistory((prev) => prev.filter((conv) => conv.id !== conversationId))
+        setConversationHistory((prev) => prev.filter((conv) => conv.id !== confirmDeleteId))
 
         // If this was the current conversation, reset to new chat
-        if (currentConversationId === conversationId) {
+        if (currentConversationId === confirmDeleteId) {
           resetToNewChat()
         }
 
@@ -1111,6 +1118,8 @@ export function AIChatScreen() {
     } catch (error) {
       console.error("Error deleting conversation:", error)
       alert("An error occurred while deleting the conversation.")
+    } finally {
+      setConfirmDeleteId(null)
     }
   }
 
@@ -1203,7 +1212,10 @@ export function AIChatScreen() {
                         {openDropdown === conversation.id && (
                           <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
                             <button
-                              onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setConfirmDeleteId(conversation.id)
+                              }}
                               className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -2125,6 +2137,22 @@ export function AIChatScreen() {
           url={dashboardUrl}
           onClose={() => setDashboardUrl(null)}
           fileName={dashboardFileName}
+        />
+      )}
+
+      {/* Confirm conversation deletion dialog */}
+      {confirmDeleteId && (
+        <ConfirmDialog
+          open={!!confirmDeleteId}
+          onOpenChange={(open) => {
+            if (!open) setConfirmDeleteId(null)
+          }}
+          title="Delete conversation"
+          description="This conversation and all its messages will be permanently deleted. This action cannot be undone."
+          onConfirm={handleConfirmDeleteConversation}
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          destructive
         />
       )}
     </div>
