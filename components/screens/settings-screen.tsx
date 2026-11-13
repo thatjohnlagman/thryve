@@ -7,6 +7,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { createClient } from "@/lib/supabase"
+import type { ReactNode } from "react"
+
+interface SettingItem {
+  icon: ReactNode
+  label: string
+  description: string
+  type: "toggle" | "navigation" | "slider"
+  value?: any
+  onChange?: (...args: any[]) => void
+  min?: number
+  max?: number
+}
+
+interface SettingsGroup {
+  title: string
+  items: SettingItem[]
+}
 
 export function SettingsScreen() {
   const [autoGeneration, setAutoGeneration] = useState(true)
@@ -84,7 +101,7 @@ export function SettingsScreen() {
     }
   }
 
-  const settingsGroups = [
+  const settingsGroups: SettingsGroup[] = [
     {
       title: "Prototype Generation",
       items: [
