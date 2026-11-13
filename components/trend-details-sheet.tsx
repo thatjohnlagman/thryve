@@ -379,7 +379,7 @@ export function TrendDetailsSheet({
 
           {/* Key Insights & Business Implications */}
           <StyledAccordion
-            ref={(el) => (accordionRefs.current.insights = el)}
+            ref={(el) => { accordionRefs.current.insights = el }}
             expanded={expandedSections.insights}
             onChange={handleAccordionChange("insights")}
             disableGutters={false}
@@ -453,7 +453,7 @@ export function TrendDetailsSheet({
 
           {/* Business Model */}
           <StyledAccordion
-            ref={(el) => (accordionRefs.current.business = el)}
+            ref={(el) => { accordionRefs.current.business = el }}
             expanded={expandedSections.business}
             onChange={handleAccordionChange("business")}
             disableGutters={false}
@@ -665,13 +665,13 @@ export function TrendDetailsSheet({
                       </List>
                     </Paper>
 
-                    {detailedResearch?.businessModel?.riskMitigation?.length > 0 && (
+                    {(detailedResearch?.businessModel?.riskMitigation?.length ?? 0) > 0 && (
                       <Paper sx={{ p: 3, borderRadius: 2, border: "1px solid rgba(33, 150, 243, 0.2)" }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: "#2196F3", mb: 2 }}>
                           How to Address These Risks
                         </Typography>
                         <List dense sx={{ py: 0 }}>
-                          {detailedResearch.businessModel.riskMitigation.map((mitigation, index) => (
+                          {detailedResearch?.businessModel?.riskMitigation?.map((mitigation, index) => (
                             <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
                               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                                 <Shield size={12} color="#2196F3" style={{ marginTop: 4 }} />
@@ -693,7 +693,7 @@ export function TrendDetailsSheet({
 
           {/* Market Validation & Competitive Analysis */}
           <StyledAccordion
-            ref={(el) => (accordionRefs.current.market = el)}
+            ref={(el) => { accordionRefs.current.market = el }}
             expanded={expandedSections.market}
             onChange={handleAccordionChange("market")}
             disableGutters={false}
@@ -814,7 +814,7 @@ export function TrendDetailsSheet({
 
           {/* Implementation & Success Metrics */}
           <StyledAccordion
-            ref={(el) => (accordionRefs.current.implementation = el)}
+            ref={(el) => { accordionRefs.current.implementation = el }}
             expanded={expandedSections.implementation}
             onChange={handleAccordionChange("implementation")}
             disableGutters={false}
@@ -940,7 +940,7 @@ export function TrendDetailsSheet({
 
           {/* Supporting Evidence */}
           <StyledAccordion
-            ref={(el) => (accordionRefs.current.evidence = el)}
+            ref={(el) => { accordionRefs.current.evidence = el }}
             expanded={expandedSections.evidence}
             onChange={handleAccordionChange("evidence")}
             disableGutters={false}

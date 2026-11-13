@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase"
 import Image from "next/image"
 import { useState } from "react"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { isLoginFormComplete } from "@/lib/validation"
 
 interface LoginScreenProps {
   onLogin: () => void
@@ -19,8 +20,7 @@ export default function LoginScreen({ onLogin, onSwitchToRegister, onForgotPassw
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const isValidEmail = (v: string) => /\S+@\S+\.\S+/.test(v)
-  const isFormComplete = isValidEmail(email) && password.trim().length > 0
+  const isFormComplete = isLoginFormComplete(email, password)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()

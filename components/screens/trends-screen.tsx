@@ -21,6 +21,7 @@ import { NewsSection } from "@/components/news/news-section"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase"
+import { TRENDS_SCREEN_MIN_WEEKLY_TRENDS, shouldRefreshTrends as hasFewerWeeklyTrends } from "@/lib/trend-refresh"
 
 interface DetailedResearch {
   keyInsights: {
@@ -554,11 +555,11 @@ function isSimilarTitle(newTitle: string, existingTitles: string[]): boolean {
 }
 
 function shouldRefreshTrends(currentWeekTrends: Trend[]): boolean {
-  const result = currentWeekTrends.length < 1
+  const result = hasFewerWeeklyTrends(currentWeekTrends, TRENDS_SCREEN_MIN_WEEKLY_TRENDS)
   terminalLog("[shouldRefreshTrends] Decision logic:", {
     currentWeekTrendsCount: currentWeekTrends.length,
-    threshold: 1,
-    condition: `${currentWeekTrends.length} < 1`,
+    threshold: TRENDS_SCREEN_MIN_WEEKLY_TRENDS,
+    condition: `${currentWeekTrends.length} < ${TRENDS_SCREEN_MIN_WEEKLY_TRENDS}`,
     result: result,
     trendTitles: currentWeekTrends.map(t => t.title),
     trendGenerationTypes: currentWeekTrends.map(t => t.generationType)
