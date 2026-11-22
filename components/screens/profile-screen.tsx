@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import type { ReactNode } from "react"
-import { Bell, Lightbulb, Palette, User, Shield, HelpCircle, LogOut, ChevronRight } from "lucide-react"
+import { Bell, Lightbulb, User, Shield, HelpCircle, LogOut, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -21,7 +21,6 @@ export function ProfileScreen() {
   const [autoGeneration, setAutoGeneration] = useState(false)
   const [dailyPrototypes, setDailyPrototypes] = useState([10])
   const [notifications, setNotifications] = useState(true)
-  const [darkMode, setDarkMode] = useState(false)
   const [userProfile, setUserProfile] = useState<{
     first_name: string | null
     last_name: string | null
@@ -65,7 +64,7 @@ export function ProfileScreen() {
       willShowDialog: checked,
       timestamp: new Date().toISOString()
     })
-    
+
     if (checked) {
       console.log("[PROFILE-SCREEN] Enabling toggle - showing confirmation dialog")
       setShowConfirmDialog(true)
@@ -88,13 +87,13 @@ export function ProfileScreen() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      
+
       console.log("[PROFILE-SCREEN] Auth check:", {
         hasUser: !!user,
         userId: user?.id,
         userEmail: user?.email
       })
-      
+
       if (!user) {
         console.error("[PROFILE-SCREEN] No user found for settings update")
         return
@@ -185,14 +184,6 @@ export function ProfileScreen() {
           type: "toggle",
           value: notifications,
           onChange: setNotifications,
-        },
-        {
-          icon: <Palette className="w-5 h-5" />,
-          label: "Dark mode",
-          description: "Switch to dark theme",
-          type: "toggle",
-          value: darkMode,
-          onChange: setDarkMode,
         },
       ],
     },

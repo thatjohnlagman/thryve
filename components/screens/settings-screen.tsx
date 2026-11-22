@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Lightbulb, Palette, User, Shield, HelpCircle, LogOut, ChevronRight, Zap } from "lucide-react"
+import { Bell, Lightbulb, User, Shield, HelpCircle, LogOut, ChevronRight, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -12,7 +12,6 @@ export function SettingsScreen() {
   const [autoGeneration, setAutoGeneration] = useState(true)
   const [dailyPrototypes, setDailyPrototypes] = useState([10])
   const [notifications, setNotifications] = useState(true)
-  const [darkMode, setDarkMode] = useState(false)
   const [autoGeneratePrototypes, setAutoGeneratePrototypes] = useState(false)
 
   useEffect(() => {
@@ -126,14 +125,6 @@ export function SettingsScreen() {
           type: "toggle",
           value: notifications,
           onChange: setNotifications,
-        },
-        {
-          icon: <Palette className="w-5 h-5" />,
-          label: "Dark mode",
-          description: "Switch to dark theme",
-          type: "toggle",
-          value: darkMode,
-          onChange: setDarkMode,
         },
       ],
     },
