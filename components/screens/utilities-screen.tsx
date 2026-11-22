@@ -287,14 +287,14 @@ export function UtilitiesScreen() {
           prev.map((f) =>
             f.id === utilityId
               ? {
-                  ...f,
-                  status: "ready",
-                  charts: Math.floor(Math.random() * 5) + 3,
-                  dashboardUrl: result.dashboardUrl,
-                  dashboardExpiresAt: expiresAt,
-                  isExpired: false,
-                  generatedCode: result.generatedCode || cachedCode,
-                }
+                ...f,
+                status: "ready",
+                charts: Math.floor(Math.random() * 5) + 3,
+                dashboardUrl: result.dashboardUrl,
+                dashboardExpiresAt: expiresAt,
+                isExpired: false,
+                generatedCode: result.generatedCode || cachedCode,
+              }
               : f,
           ),
         )
@@ -314,10 +314,10 @@ export function UtilitiesScreen() {
           prev.map((f) =>
             f.id === utilityId
               ? {
-                  ...f,
-                  status: "error",
-                  generatedCode: result.generatedCode,
-                }
+                ...f,
+                status: "error",
+                generatedCode: result.generatedCode,
+              }
               : f,
           ),
         )
@@ -345,13 +345,13 @@ export function UtilitiesScreen() {
   const handleViewDashboard = (file: UploadedFile) => {
     if (file.dashboardUrl) {
       console.log("Opening existing dashboard:", file.dashboardUrl)
-      
+
       // Ensure the URL is properly formatted as an absolute URL
       let cleanUrl = file.dashboardUrl
       if (!cleanUrl.startsWith('/') && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
         cleanUrl = `https://${cleanUrl}`
       }
-      
+
       console.log("Cleaned dashboard URL:", cleanUrl)
       setDashboardUrl(cleanUrl)
       setDashboardFileName(file.name)
@@ -435,12 +435,12 @@ export function UtilitiesScreen() {
           prev.map((f) =>
             f.id === file.id
               ? {
-                  ...f,
-                  status: "ready",
-                  dashboardUrl: result.dashboardUrl,
-                  dashboardExpiresAt: expiresAt,
-                  isExpired: false,
-                }
+                ...f,
+                status: "ready",
+                dashboardUrl: result.dashboardUrl,
+                dashboardExpiresAt: expiresAt,
+                isExpired: false,
+              }
               : f,
           ),
         )
@@ -467,10 +467,10 @@ export function UtilitiesScreen() {
           prev.map((f) =>
             f.id === file.id
               ? {
-                  ...f,
-                  status: "error",
-                  generatedCode: result.generatedCode || cachedCode,
-                }
+                ...f,
+                status: "error",
+                generatedCode: result.generatedCode || cachedCode,
+              }
               : f,
           ),
         )
@@ -596,10 +596,10 @@ export function UtilitiesScreen() {
   const deploySpecificVersion = async (utilityId: string, versionId: string) => {
     try {
       setDeployingVersions(prev => new Set(prev).add(versionId))
-      
+
       // Check if this is the main version (v1) by checking if versionId equals utilityId
       const isMainVersion = versionId === utilityId
-      
+
       let response
       if (isMainVersion) {
         // For main version (v1), deploy using the main utility code
@@ -607,7 +607,7 @@ export function UtilitiesScreen() {
         if (!utility || !utility.generatedCode) {
           throw new Error("No code found for main version")
         }
-        
+
         response = await fetch("/api/generate-dashboard", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -622,11 +622,11 @@ export function UtilitiesScreen() {
         // For additional versions (v2+), get the version data first
         const versionData = versions.find(v => v.id === versionId)
         const utility = uploadedFiles.find(f => f.id === utilityId)
-        
+
         if (!versionData || !utility) {
           throw new Error("Version or utility data not found")
         }
-        
+
         response = await fetch("/api/ai-chat/utilities", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -684,7 +684,7 @@ export function UtilitiesScreen() {
             })
             .eq("id", utilityId)
         }
-        
+
         await loadExistingUtilities()
         // Reload version history to update deployment status
         await loadVersionHistory(utilityId)
@@ -788,7 +788,7 @@ export function UtilitiesScreen() {
         </div>
       </div>
 
-  <div className="px-4 lg:pl-8 xl:pl-12 space-y-6">
+      <div className="px-4 lg:pl-8 xl:pl-12 space-y-6">
         <div className="text-left">
           <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[#E0000A] mb-2">Interactive Dashboard</h1>
           <p className="text-gray-500 lg:text-lg xl:text-xl">Upload and visualize your data with AI insights</p>
@@ -811,9 +811,8 @@ export function UtilitiesScreen() {
               const file = e.dataTransfer.files?.[0];
               if (file) processFile(file);
             }}
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-              isDragOver ? "border-red-600 bg-red-50/50" : "border-[#E0000A] bg-gray-50 hover:bg-gray-100/50"
-            }`}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${isDragOver ? "border-red-600 bg-red-50/50" : "border-[#E0000A] bg-gray-50 hover:bg-gray-100/50"
+              }`}
           >
             <div className="mb-4">
               <div className="w-12 h-12 mx-auto mb-4">
@@ -907,56 +906,181 @@ export function UtilitiesScreen() {
             <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
               {filteredAndSortedFiles.map((file) => (
                 <Card key={file.id} className="shadow-sm border border-gray-200 rounded-lg mb-4 lg:mb-0">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FileSpreadsheet className="w-5 h-5 text-[#E0000A]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate text-base lg:text-lg xl:text-xl">{file.name}</h3>
-                    <p className="text-sm lg:text-base text-gray-500">
-                      {file.size} • {file.uploadedAt}
-                    </p>
-                  </div>
-                  {file.status === "ready" && (
-                    <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Ready</Badge>
-                  )}
-                  {file.status === "error" && (
-                    <Badge className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Error</Badge>
-                  )}
-                  {file.status === "expired" && (
-                    <Badge className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Expired</Badge>
-                  )}
-                </div>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileSpreadsheet className="w-5 h-5 text-[#E0000A]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 truncate text-base lg:text-lg xl:text-xl">{file.name}</h3>
+                        <p className="text-sm lg:text-base text-gray-500">
+                          {file.size} • {file.uploadedAt}
+                        </p>
+                      </div>
+                      {file.status === "ready" && (
+                        <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Ready</Badge>
+                      )}
+                      {file.status === "error" && (
+                        <Badge className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Error</Badge>
+                      )}
+                      {file.status === "expired" && (
+                        <Badge className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Expired</Badge>
+                      )}
+                    </div>
 
-                {file.status === "ready" && (
-                  <>
-                    <div className="bg-green-50 rounded-lg p-3 mb-4">
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-green-600" />
-                        <div className="flex-1">
-                          <p className="text-sm lg:text-base xl:text-lg font-medium text-green-900">{file.charts} charts generated</p>
-                          <p className="text-xs lg:text-sm xl:text-base text-green-700">AI analysis complete</p>
+                    {file.status === "ready" && (
+                      <>
+                        <div className="bg-green-50 rounded-lg p-3 mb-4">
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4 text-green-600" />
+                            <div className="flex-1">
+                              <p className="text-sm lg:text-base xl:text-lg font-medium text-green-900">{file.charts} charts generated</p>
+                              <p className="text-xs lg:text-sm xl:text-base text-green-700">AI analysis complete</p>
+                            </div>
+                            {file.hasVersions && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => loadVersionHistory(file.id)}
+                                className="text-xs text-green-700 hover:text-green-900 hover:bg-green-100"
+                              >
+                                v{file.currentVersion} ({file.totalVersions} versions)
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        {file.hasVersions && (
+
+                        <div className="flex gap-2">
+                          {isDashboardExpiredCheck(file) ? (
+                            <Button
+                              onClick={() => handleRedeployDashboard(file)}
+                              disabled={redeployingFiles.has(file.id)}
+                              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
+                            >
+                              {redeployingFiles.has(file.id) ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                  Redeploying...
+                                </>
+                              ) : (
+                                "Redeploy Dashboard"
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => handleViewDashboard(file)}
+                              className="flex-1 bg-[#E0000A] hover:bg-red-700 text-white rounded-lg"
+                            >
+                              View Dashboard
+                            </Button>
+                          )}
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => loadVersionHistory(file.id)}
-                            className="text-xs text-green-700 hover:text-green-900 hover:bg-green-100"
+                            variant="outline"
+                            className={`flex-1 border-gray-300 text-gray-700 rounded-lg bg-transparent flex items-center gap-2 transition-colors ${clickedAskYve === file.id ? "bg-[#E0000A] text-white border-[#E0000A]" : ""
+                              }`}
+                            onClick={() => {
+                              setClickedAskYve(file.id)
+                              setTimeout(() => setClickedAskYve(null), 200)
+                              handleAskYve(file)
+                            }}
                           >
-                            v{file.currentVersion} ({file.totalVersions} versions)
+                            <img
+                              src="assets/yve_splash_smile_1.svg"
+                              alt="Ask Yve"
+                              className="w-4 h-4"
+                            />
+                            Ask Yve
+                          </Button>
+                        </div>
+                      </>
+                    )}
+
+                    {file.status === "processing" && (
+                      <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                        <RefreshCw className="w-5 h-5 text-yellow-600 animate-spin" />
+                        <div>
+                          <p className="text-sm lg:text-base xl:text-lg font-medium text-yellow-900">Processing your data...</p>
+                          <p className="text-xs lg:text-sm xl:text-base text-yellow-700">AI is analyzing and generating dashboard</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {file.status === "generating-dashboard" && (
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
+                        <div>
+                          <p className="text-sm lg:text-base xl:text-lg font-medium text-blue-900">Generating AI dashboard...</p>
+                          <p className="text-xs lg:text-sm xl:text-base text-blue-700">This may take a few minutes</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {file.status === "error" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                          <div className="w-5 h-5 text-red-600 flex-shrink-0">
+                            <svg viewBox="0 0 20 20" fill="currentColor">
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            {file.generatedCode ? (
+                              <>
+                                <p className="text-sm lg:text-base xl:text-lg font-medium text-red-900">Deployment failed</p>
+                                <p className="text-xs lg:text-sm xl:text-base text-red-700">Code saved - you can retry deployment</p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-sm lg:text-base xl:text-lg font-medium text-red-900">Processing failed</p>
+                                <p className="text-xs lg:text-sm xl:text-base text-red-700">Please try uploading again or contact support</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {file.generatedCode && (
+                          <Button
+                            onClick={() => handleRedeployDashboard(file)}
+                            disabled={redeployingFiles.has(file.id)}
+                            className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
+                          >
+                            {redeployingFiles.has(file.id) ? (
+                              <>
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                Retrying...
+                              </>
+                            ) : (
+                              "Retry Deploy"
+                            )}
                           </Button>
                         )}
                       </div>
-                    </div>
+                    )}
 
-                    <div className="flex gap-2">
-                      {isDashboardExpiredCheck(file) ? (
+                    {file.status === "expired" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="w-5 h-5 text-gray-600 flex-shrink-0">
+                            <svg viewBox="0 0 20 20" fill="currentColor">
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm lg:text-base xl:text-lg font-medium text-gray-900">Dashboard expired</p>
+                            <p className="text-xs lg:text-sm xl:text-base text-gray-700">Redeploy to access your dashboard again</p>
+                          </div>
+                        </div>
                         <Button
                           onClick={() => handleRedeployDashboard(file)}
                           disabled={redeployingFiles.has(file.id)}
-                          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
                         >
                           {redeployingFiles.has(file.id) ? (
                             <>
@@ -967,136 +1091,10 @@ export function UtilitiesScreen() {
                             "Redeploy Dashboard"
                           )}
                         </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleViewDashboard(file)}
-                          className="flex-1 bg-[#E0000A] hover:bg-red-700 text-white rounded-lg"
-                        >
-                          View Dashboard
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        className={`flex-1 border-gray-300 text-gray-700 rounded-lg bg-transparent flex items-center gap-2 transition-colors ${
-                          clickedAskYve === file.id ? "bg-[#E0000A] text-white border-[#E0000A]" : ""
-                        }`}
-                        onClick={() => {
-                          setClickedAskYve(file.id)
-                          setTimeout(() => setClickedAskYve(null), 200)
-                          handleAskYve(file)
-                        }}
-                      >
-                        <img
-                          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ask_yve_dashboard.svg"
-                          alt="Ask Yve"
-                          className="w-4 h-4"
-                        />
-                        Ask Yve
-                      </Button>
-                    </div>
-                  </>
-                )}
-
-                {file.status === "processing" && (
-                    <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-                    <RefreshCw className="w-5 h-5 text-yellow-600 animate-spin" />
-                    <div>
-                      <p className="text-sm lg:text-base xl:text-lg font-medium text-yellow-900">Processing your data...</p>
-                      <p className="text-xs lg:text-sm xl:text-base text-yellow-700">AI is analyzing and generating dashboard</p>
-                    </div>
-                  </div>
-                )}
-
-                {file.status === "generating-dashboard" && (
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                    <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
-                    <div>
-                      <p className="text-sm lg:text-base xl:text-lg font-medium text-blue-900">Generating AI dashboard...</p>
-                      <p className="text-xs lg:text-sm xl:text-base text-blue-700">This may take a few minutes</p>
-                    </div>
-                  </div>
-                )}
-
-                {file.status === "error" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-                      <div className="w-5 h-5 text-red-600 flex-shrink-0">
-                        <svg viewBox="0 0 20 20" fill="currentColor">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
                       </div>
-                      <div>
-                        {file.generatedCode ? (
-                          <>
-                            <p className="text-sm lg:text-base xl:text-lg font-medium text-red-900">Deployment failed</p>
-                            <p className="text-xs lg:text-sm xl:text-base text-red-700">Code saved - you can retry deployment</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm lg:text-base xl:text-lg font-medium text-red-900">Processing failed</p>
-                            <p className="text-xs lg:text-sm xl:text-base text-red-700">Please try uploading again or contact support</p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {file.generatedCode && (
-                      <Button
-                        onClick={() => handleRedeployDashboard(file)}
-                        disabled={redeployingFiles.has(file.id)}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
-                      >
-                        {redeployingFiles.has(file.id) ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                            Retrying...
-                          </>
-                        ) : (
-                          "Retry Deploy"
-                        )}
-                      </Button>
                     )}
-                  </div>
-                )}
-
-                {file.status === "expired" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-5 h-5 text-gray-600 flex-shrink-0">
-                        <svg viewBox="0 0 20 20" fill="currentColor">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm lg:text-base xl:text-lg font-medium text-gray-900">Dashboard expired</p>
-                        <p className="text-xs lg:text-sm xl:text-base text-gray-700">Redeploy to access your dashboard again</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleRedeployDashboard(file)}
-                      disabled={redeployingFiles.has(file.id)}
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50"
-                    >
-                      {redeployingFiles.has(file.id) ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                          Redeploying...
-                        </>
-                      ) : (
-                        "Redeploy Dashboard"
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
@@ -1160,7 +1158,7 @@ export function UtilitiesScreen() {
                     <div className="flex gap-2">
                       {(() => {
                         const isDeploying = deployingVersions.has(version.id)
-                        
+
                         // Check if deployed and not expired
                         let isDeployed = version.is_deployed
                         if (isDeployed && version.dashboard_expires_at) {
@@ -1170,7 +1168,7 @@ export function UtilitiesScreen() {
                             isDeployed = false // Dashboard has expired
                           }
                         }
-                        
+
                         if (isDeploying) {
                           return (
                             <Button

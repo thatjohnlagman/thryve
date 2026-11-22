@@ -1017,6 +1017,7 @@ export function AIChatScreen() {
   const handleNewChat = () => {
     resetToNewChat()
     setContextInfo(null)
+    setIsSidebarOpen(false)
   }
 
   const handleLoadConversation = async (conversation: ConversationHistory) => {
@@ -1147,18 +1148,27 @@ export function AIChatScreen() {
       )}
 
       <div
-        className={`absolute right-0 top-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl border-l border-gray-200 ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        className={`absolute left-0 top-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl border-r border-gray-200 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div className="p-4 h-full flex flex-col">
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="pl-10 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-gray-400 rounded-lg w-full py-2"
-            />
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="pl-10 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-gray-400 rounded-lg w-full py-2"
+              />
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+              aria-label="Close chat history"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <Button

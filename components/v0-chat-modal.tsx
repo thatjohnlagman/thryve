@@ -545,7 +545,7 @@ export function V0ChatModal({ isOpen, onClose, prototype, onNewDemo }: V0ChatMod
 
           <div className="mb-6 flex justify-center">
             <img
-              src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ai_yve.svg"
+              src="/assets/thryve-wink.svg"
               alt="Yve AI"
               className="w-16 h-16"
             />
@@ -585,11 +585,18 @@ export function V0ChatModal({ isOpen, onClose, prototype, onNewDemo }: V0ChatMod
               >
                 <Menu className="w-5 h-5 text-gray-600" />
               </button>
-              <img
-                src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ai_yve.svg"
-                alt="Yve AI"
-                className="w-16 h-16"
-              />
+              <div className="flex items-center gap-2 select-none">
+                <img
+                  src="/assets/yve_splash_smile_1.svg"
+                  alt="Yve mascot"
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+                <img
+                  src="/assets/yve_wordmark.svg"
+                  alt="yve"
+                  className="h-7 w-auto object-contain flex-shrink-0"
+                />
+              </div>
               {canModifyProject && (
                 <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Project Mode</div>
               )}
@@ -622,9 +629,9 @@ export function V0ChatModal({ isOpen, onClose, prototype, onNewDemo }: V0ChatMod
           {isInitialState && messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center px-6 leading-5">
               <img
-                src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/big_ai_yve.svg"
-                alt="Yve AI"
-                className="w-32 h-32 rounded-full mb-6"
+                src="/assets/thryve-wink.svg"
+                alt="AI Yve"
+                className="w-32 h-32 mb-6"
               />
               <div className="text-center">
                 <p className="text-gray-600 text-lg mb-2">{getInitialMessage()}</p>
@@ -648,9 +655,9 @@ export function V0ChatModal({ isOpen, onClose, prototype, onNewDemo }: V0ChatMod
                         {message.role === "assistant" && (
                           <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
                             <img
-                              src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ai_yve.svg"
-                              alt="Yve AI"
-                              className="w-16 h-16"
+                              src="/assets/thryve-wink.svg"
+                              alt="Yve"
+                              className="w-8 h-8"
                             />
                           </div>
                         )}

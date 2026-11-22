@@ -499,7 +499,7 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
           data: { session },
         } = await supabase.auth.getSession()
         accessToken = session?.access_token
-      } catch {}
+      } catch { }
 
       const headers: Record<string, string> = {}
       if (accessToken) {
@@ -592,7 +592,7 @@ export function PrototypesScreen({ onNavbarToggle }: PrototypesScreenProps) {
         data: { session },
       } = await supabase.auth.getSession()
       accessToken = session?.access_token
-    } catch {}
+    } catch { }
 
     setGenerating(true)
     try {
@@ -1022,7 +1022,7 @@ Focus on creating an impressive, practical, usable prototype that demonstrates c
                         >
                           <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                           <img
-                            src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ask_yve_dashboard.svg"
+                            src="assets/yve_splash_smile_1.svg"
                             alt="Ask Yve"
                             className="w-4 h-4 mr-2"
                           />

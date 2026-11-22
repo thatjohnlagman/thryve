@@ -91,7 +91,7 @@ export function PrototypeViewAll({ prototypes, onBack }: PrototypeViewAllProps) 
           </Button>
           <div className="flex-1 flex justify-center">
             <img
-              src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/thryve_nav_logo.svg"
+              src="/assets/Thryve_1st.svg"
               alt="thryve"
               className="h-12"
             />

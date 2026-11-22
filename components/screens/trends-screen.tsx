@@ -92,8 +92,8 @@ const terminalLog = async (message: string, data?: any) => {
     await fetch('/api/debug', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        message, 
+      body: JSON.stringify({
+        message,
         data: data ? JSON.stringify(data, null, 2) : undefined,
         timestamp: new Date().toISOString()
       })
@@ -361,7 +361,7 @@ async function checkCurrentWeekTrends(): Promise<Trend[]> {
   try {
     await terminalLog("[checkCurrentWeekTrends] Starting current week trends check")
     const supabase = createClient()
-    
+
     // Get user with better error handling
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
@@ -435,7 +435,7 @@ async function checkCurrentWeekTrends(): Promise<Trend[]> {
     })
 
     if (error) {
-      await terminalLog("[checkCurrentWeekTrends] Current week query error:", { 
+      await terminalLog("[checkCurrentWeekTrends] Current week query error:", {
         error: error.message,
         code: error.code,
         details: error.details,
@@ -454,7 +454,7 @@ async function checkCurrentWeekTrends(): Promise<Trend[]> {
         createdAtTimestamp: createdAt,
         isThisWeek: createdAt >= sevenDaysAgo.getTime()
       })
-      
+
       return {
         id: item.id,
         title: item.title,
@@ -477,10 +477,10 @@ async function checkCurrentWeekTrends(): Promise<Trend[]> {
       trendDates: trends.map(t => new Date(t.createdAt).toISOString()),
       allAreAutomatic: trends.every(t => t.generationType === "automatic")
     })
-    
+
     return trends
   } catch (error) {
-    await terminalLog("[checkCurrentWeekTrends] Error checking current week trends:", { 
+    await terminalLog("[checkCurrentWeekTrends] Error checking current week trends:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined
     })
@@ -663,12 +663,12 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
         await terminalLog("[TrendsScreen] Loading trends from props:", { count: propTrends.length })
         const loadedTrends = propTrends.length > 0 ? propTrends : await loadTrendsFromSupabase()
         await terminalLog("[TrendsScreen] Total trends loaded:", { count: loadedTrends.length })
-        
+
         // Log detailed breakdown of loaded trends
         const automaticTrends = loadedTrends.filter(t => t.generationType === "automatic")
         const manualTrends = loadedTrends.filter(t => t.generationType === "manual")
         const unknownTrends = loadedTrends.filter(t => !t.generationType)
-        
+
         await terminalLog("[TrendsScreen] Trends breakdown:", {
           total: loadedTrends.length,
           automatic: automaticTrends.length,
@@ -681,7 +681,7 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
         if (loadedTrends.length > 0) {
           setTrends(loadedTrends)
           setSavedTrends(new Set(loadedTrends.filter((t) => t.isHeart).map((t) => t.id)))
-          
+
           await terminalLog("[TrendsScreen] Checking if automatic trends need to be generated...")
           const currentWeekTrends = await checkCurrentWeekTrends()
           await terminalLog("📅 [TrendsScreen] Current week automatic trends analysis:", {
@@ -718,7 +718,7 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
           }
         } else {
           await terminalLog("[TrendsScreen] No trends found in database - checking for empty DB scenario")
-          
+
           try {
             const currentWeekTrends = await checkCurrentWeekTrends()
             await terminalLog("[TrendsScreen] Current week automatic trends (empty DB check):", {
@@ -752,7 +752,7 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
         await terminalLog("[TrendsScreen] Failed to load trends:", { error: errMsg })
         bootstrappedRef.current = true
       }
-      
+
       await terminalLog("[TrendsScreen] useEffect completed - END")
     }
 
@@ -898,7 +898,7 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
         hasPrototypePrompt: !!trend.prototypePrompt,
         prototypePromptLength: trend.prototypePrompt?.length || 0
       })
-      
+
       console.log("[TrendsScreen] Auto-generating prototype for trend:", trend.title)
 
       if (!trend.prototypePrompt || trend.prototypePrompt.trim() === "") {
@@ -935,7 +935,7 @@ function TrendsScreen({ trends: propTrends = [], onTrendsUpdated }: TrendsScreen
       // SAFETY CHECK: Verify toggle is enabled before proceeding
       await terminalLog("[autoGeneratePrototypeFromTrend] SAFETY CHECK - Verifying toggle is enabled...")
       const isToggleEnabled = await checkAutoGeneratePrototypesEnabled()
-      
+
       await terminalLog("[autoGeneratePrototypeFromTrend] Toggle verification result:", {
         isEnabled: isToggleEnabled,
         shouldProceed: isToggleEnabled
@@ -1092,7 +1092,7 @@ Focus on creating a fully functional, production-ready prototype that users can 
             hasPrototypePrompt: !!updatedTrend.prototypePrompt,
             prototypePromptLength: updatedTrend.prototypePrompt?.length || 0
           })
-          
+
           console.log("[TrendsScreen] Checking if should auto-generate prototype for automatic trend")
           const shouldAutoGenerate = await checkAutoGeneratePrototypesEnabled()
 
@@ -1148,7 +1148,7 @@ Focus on creating a fully functional, production-ready prototype that users can 
       currentTrendsCount: trends.length,
       timestamp: new Date().toISOString()
     })
-    
+
     setSearchingMore(true)
     try {
       console.log(
@@ -1437,7 +1437,7 @@ Focus on creating a fully functional, production-ready prototype that users can 
         </div>
       </div>
 
-  <div className="px-4 lg:pl-8 xl:pl-12 space-y-6 pb-24 lg:pb-10">{/* extra bottom padding so pagination not hidden behind mobile nav */}
+      <div className="px-4 lg:pl-8 xl:pl-12 space-y-6 pb-24 lg:pb-10">{/* extra bottom padding so pagination not hidden behind mobile nav */}
         <Card className="shadow-sm border border-gray-200 bg-white">
           <CardContent className="p-4 space-y-4">
             <div className="space-y-1">
@@ -1545,126 +1545,125 @@ Focus on creating a fully functional, production-ready prototype that users can 
 
         <div className="space-y-4">
           <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
-          {paginatedTrends.map((trend) => {
-            return (
-              <Card key={trend.id} className="shadow-sm border border-gray-200 rounded-lg bg-white">
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900 leading-tight pr-2">{trend.title}</h3>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">{formatDate(trend.createdAt)}</span>
+            {paginatedTrends.map((trend) => {
+              return (
+                <Card key={trend.id} className="shadow-sm border border-gray-200 rounded-lg bg-white">
+                  <CardContent className="p-4 space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900 leading-tight pr-2">{trend.title}</h3>
+                        <span className="text-xs text-gray-500 whitespace-nowrap">{formatDate(trend.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full border border-purple-200">
+                          {trend.category}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full border border-purple-200">
-                        {trend.category}
-                      </span>
-                    </div>
-                  </div>
 
-                  <Card className="bg-yellow-50 border-yellow-200">
-                    <CardContent className="p-3 space-y-1">
-                      <h4 className="text-sm font-semibold text-yellow-900">Key Insight</h4>
-                      <p className="text-sm lg:text-base xl:text-lg text-yellow-800 leading-relaxed">
-                        {trend.summary || "AI will summarize market validation here."}
-                      </p>
-                    </CardContent>
-                  </Card>
+                    <Card className="bg-yellow-50 border-yellow-200">
+                      <CardContent className="p-3 space-y-1">
+                        <h4 className="text-sm font-semibold text-yellow-900">Key Insight</h4>
+                        <p className="text-sm lg:text-base xl:text-lg text-yellow-800 leading-relaxed">
+                          {trend.summary || "AI will summarize market validation here."}
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                  <Card className="bg-purple-50 border-purple-200">
-                    <CardContent className="p-3 space-y-1">
-                      <h4 className="text-sm font-semibold text-purple-900">Business Implication</h4>
-                      <p className="text-sm lg:text-base xl:text-lg text-purple-800 leading-relaxed">
-                        {trend.interpretation || "Insights will appear here."}
-                      </p>
-                    </CardContent>
-                  </Card>
+                    <Card className="bg-purple-50 border-purple-200">
+                      <CardContent className="p-3 space-y-1">
+                        <h4 className="text-sm font-semibold text-purple-900">Business Implication</h4>
+                        <p className="text-sm lg:text-base xl:text-lg text-purple-800 leading-relaxed">
+                          {trend.interpretation || "Insights will appear here."}
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <button
-                        className="flex items-center gap-2 text-[#E0000A] hover:bg-red-50 px-4 py-3 rounded-lg transition-colors flex-1"
-                        onClick={() => {
-                          sessionStorage.setItem(
-                            "ai-chat-context",
-                            JSON.stringify({
-                              type: "trend",
-                              id: trend.id, // Added missing trend ID
-                              title: trend.title,
-                              category: trend.category,
-                              summary: trend.summary,
-                              interpretation: trend.interpretation,
-                            }),
-                          )
-                          window.dispatchEvent(new CustomEvent("switch-to-ai-chat"))
-                        }}
-                      >
-                        <img
-                          src="https://uxhbywzqivssrjfanjjp.supabase.co/storage/v1/object/public/thryve/ask_yve_trends.svg"
-                          alt="AI Chat"
-                          className="w-8 h-8"
-                        />
-                        <span className="text-sm font-medium">Ask Yve anything</span>
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleSaved(trend.id)}
-                        className="flex items-center gap-1 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
-                      >
-                        <Heart
-                          className={`w-6 h-6 transition-colors ${
-                            trend.isHeart ? "text-red-500 fill-red-500" : "text-gray-400 hover:text-red-400"
-                          }`}
-                        />
-                      </button>
-                      <Share className="w-6 h-6 text-gray-400 ml-2" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    {!trend.detailedResearch ? (
-                      <Button className="col-span-2 bg-gray-100 text-gray-400 cursor-not-allowed rounded-lg" disabled>
-                        <TrendingUp className="w-4 h-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          variant="outline"
-                          className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg"
-                          onClick={() => setDetailsOpenFor(trend.id)}
-                        >
-                          View Details
-                        </Button>
-                        <Button
-                          className="bg-[#E0000A] hover:bg-red-700 text-white font-semibold rounded-lg"
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <button
+                          className="flex items-center gap-2 text-[#E0000A] hover:bg-red-50 px-4 py-3 rounded-lg transition-colors flex-1"
                           onClick={() => {
-                            console.log("[TRENDS-SCREEN] Generate Prototype clicked for trend:", trend.id)
-                            console.log("[TRENDS-SCREEN] Trend data analysis:")
-                            console.log(`   - Title: "${trend.title}"`)
-                            console.log(`   - Category: "${trend.category}"`)
-                            console.log(`   - Has prototypePrompt: ${!!trend.prototypePrompt}`)
-                            console.log(`   - PrototypePrompt length: ${trend.prototypePrompt?.length || 0}`)
-                            if (trend.prototypePrompt) {
-                              console.log(
-                                `   - PrototypePrompt preview: "${trend.prototypePrompt.substring(0, 200)}..."`,
-                              )
-                            } else {
-                              console.log("   - PrototypePrompt: null/undefined/empty")
-                            }
-                            console.log("🚀 [TRENDS-SCREEN] Opening PrototypePromptModal...")
-                            setPromptOpenFor(trend.id)
+                            sessionStorage.setItem(
+                              "ai-chat-context",
+                              JSON.stringify({
+                                type: "trend",
+                                id: trend.id, // Added missing trend ID
+                                title: trend.title,
+                                category: trend.category,
+                                summary: trend.summary,
+                                interpretation: trend.interpretation,
+                              }),
+                            )
+                            window.dispatchEvent(new CustomEvent("switch-to-ai-chat"))
                           }}
                         >
-                          Generate Prototype
+                          <img
+                            src="assets/yve_splash_smile_1.svg"
+                            alt="AI Chat"
+                            className="w-8 h-8"
+                          />
+                          <span className="text-sm font-medium">Ask Yve anything</span>
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleSaved(trend.id)}
+                          className="flex items-center gap-1 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
+                        >
+                          <Heart
+                            className={`w-6 h-6 transition-colors ${trend.isHeart ? "text-red-500 fill-red-500" : "text-gray-400 hover:text-red-400"
+                              }`}
+                          />
+                        </button>
+                        <Share className="w-6 h-6 text-gray-400 ml-2" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      {!trend.detailedResearch ? (
+                        <Button className="col-span-2 bg-gray-100 text-gray-400 cursor-not-allowed rounded-lg" disabled>
+                          <TrendingUp className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
                         </Button>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg"
+                            onClick={() => setDetailsOpenFor(trend.id)}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            className="bg-[#E0000A] hover:bg-red-700 text-white font-semibold rounded-lg"
+                            onClick={() => {
+                              console.log("[TRENDS-SCREEN] Generate Prototype clicked for trend:", trend.id)
+                              console.log("[TRENDS-SCREEN] Trend data analysis:")
+                              console.log(`   - Title: "${trend.title}"`)
+                              console.log(`   - Category: "${trend.category}"`)
+                              console.log(`   - Has prototypePrompt: ${!!trend.prototypePrompt}`)
+                              console.log(`   - PrototypePrompt length: ${trend.prototypePrompt?.length || 0}`)
+                              if (trend.prototypePrompt) {
+                                console.log(
+                                  `   - PrototypePrompt preview: "${trend.prototypePrompt.substring(0, 200)}..."`,
+                                )
+                              } else {
+                                console.log("   - PrototypePrompt: null/undefined/empty")
+                              }
+                              console.log("🚀 [TRENDS-SCREEN] Opening PrototypePromptModal...")
+                              setPromptOpenFor(trend.id)
+                            }}
+                          >
+                            Generate Prototype
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
 
           {totalPages > 1 && (
@@ -1756,11 +1755,11 @@ Focus on creating a fully functional, production-ready prototype that users can 
 
 export { TrendsScreen }
 export default TrendsScreen
-;(() => {
-  if (typeof document !== "undefined" && !document.getElementById("progress-anim")) {
-    const style = document.createElement("style")
-    style.id = "progress-anim"
-    style.innerHTML = `
+  ; (() => {
+    if (typeof document !== "undefined" && !document.getElementById("progress-anim")) {
+      const style = document.createElement("style")
+      style.id = "progress-anim"
+      style.innerHTML = `
       @keyframes progress {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(300%); }
@@ -1769,6 +1768,6 @@ export default TrendsScreen
         animation: progress 1.2s linear infinite;
       }
     `
-    document.head.appendChild(style)
-  }
-})()
+      document.head.appendChild(style)
+    }
+  })()
